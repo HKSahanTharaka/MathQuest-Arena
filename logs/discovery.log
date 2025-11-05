@@ -1,0 +1,66 @@
+? Service Discovery/Registry Server started on port 8084
+   ? Endpoints:
+      POST   /registry/register   - Register a service
+      POST   /registry/deregister - Deregister a service
+      POST   /registry/heartbeat  - Send heartbeat
+      GET    /registry/services   - List all services
+      GET    /registry/discover   - Discover service by name
+      GET    /registry/stats      - Registry statistics
+? Service registered: Service Registry at http://localhost:8084
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry
+??  Unhealthy services detected: Service Registry

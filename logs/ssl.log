@@ -1,0 +1,17 @@
+? Loaded 4 user accounts
+Failed to start secure server: Address already in use: bind
+java.net.BindException: Address already in use: bind
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.Net.bind(Net.java:511)
+	at java.base/sun.nio.ch.NioSocketImpl.bind(NioSocketImpl.java:641)
+	at java.base/java.net.ServerSocket.bind(ServerSocket.java:326)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:222)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:178)
+	at java.base/javax.net.ssl.SSLServerSocket.<init>(SSLServerSocket.java:118)
+	at java.base/sun.security.ssl.SSLServerSocketImpl.<init>(SSLServerSocketImpl.java:72)
+	at java.base/sun.security.ssl.SSLServerSocketFactoryImpl.createServerSocket(SSLServerSocketFactoryImpl.java:73)
+	at com.netbattle.server.security.SecureAuthServer.start(SecureAuthServer.java:35)
+	at com.netbattle.server.security.SecureAuthServer.main(SecureAuthServer.java:268)
+
+? Shutting down secure server...

@@ -1,0 +1,9 @@
+? Loaded 4 user accounts
+? Secure Authentication Server started on port 8443
+? SSL/TLS enabled with strong cipher suites
+? REST API Server started on port 8080
+? All servers ready!
+? REST API: http://localhost:8080
+? SSL Auth: https://localhost:8443
+? Registered player: tt (ID: player-tt-1762366766160)
+? tt solved problem 1 (+100 points)

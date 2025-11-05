@@ -1,0 +1,7 @@
+? RMI Statistics Service initialized
+? RMI Statistics Server started
+   Port: 1099
+   Service: NetBattleStats
+   URL: rmi://localhost:1099/NetBattleStats
+
+? Ready to accept remote calls

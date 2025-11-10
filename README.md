@@ -7,11 +7,14 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 ### Frontend (React + Vite)
 - 🎨 **Modern UI** - Beautiful, responsive design with Tailwind CSS
 - 🌓 **Dark/Light Theme** - Toggle with persistent preference
-- 📊 **Interactive Dashboard** - Real-time stats with charts
+- 📊 **Interactive Dashboard** - Real-time stats with charts and live updates
 - 🧮 **Problem Interface** - Browse, filter, and submit math solutions
+- 🎯 **Minimum Players Requirement** - Game starts only when 5+ players join
 - 🏆 **Live Leaderboard** - Global rankings with real-time updates
-- 👤 **User Profiles** - Stats, achievements, and activity history
-- 💬 **Live Chat** - Real-time messaging between players
+- 👤 **User Profiles** - Complete stats, achievements, and activity history
+- 💬 **Live Chat** - Real-time messaging (available only before game starts)
+- 🔒 **Username Uniqueness** - Enforced unique usernames per session
+- 🔌 **Connection Status** - Real-time WebSocket connection indicator
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile
 
 ### Backend (Java)
@@ -57,7 +60,7 @@ This automatically:
 
 **Then open:** http://localhost:3000
 
-**Login:** `player1` / `password1`
+**Login:** Enter any unique username (minimum 5 players required to start)
 
 ### Option 2: Backend Only (Console Client)
 
@@ -103,6 +106,7 @@ npm run dev
 | **REST API** | http://localhost:8080 | Main API server |
 | **NIO Manager** | localhost:8081 | State broadcasting |
 | **WebSocket** | ws://localhost:8082 | Real-time updates |
+| **WebSocket HTTP API** | http://localhost:8083 | Internal backend API |
 | **Service Discovery** | http://localhost:8084 | Service registry |
 | **UDP Server** | localhost:9000 | Event updates |
 | **UDP Multicast** | localhost:9001 | Group messaging |
@@ -113,13 +117,15 @@ npm run dev
 ### Web Interface (Frontend)
 
 1. **Open Browser:** http://localhost:3000
-2. **Login:** Enter any username to start
-3. **Dashboard:** View your stats, score history, and server status
-4. **Problems:** Browse math problems, submit answers
-5. **Leaderboard:** See global rankings with live updates
-6. **Profile:** View your achievements and activity
-7. **Chat:** Message other solvers in real-time
-8. **Theme:** Toggle dark/light mode in navbar
+2. **Login:** Enter a unique username (duplicate usernames are not allowed)
+3. **Wait for Players:** Minimum 5 players must join before challenges can be started
+4. **Dashboard:** View your stats, score history, and server status (updates in real-time)
+5. **Problems:** Browse math problems, submit answers (enabled when 5+ players join)
+6. **Leaderboard:** See global rankings with live updates
+7. **Profile:** View your complete stats, achievements, and activity history
+8. **Chat:** Message other players in real-time (only available while waiting for players)
+9. **Theme:** Toggle dark/light mode in navbar
+10. **Connection Status:** Monitor WebSocket connection status in the navbar
 
 ### Console Client Commands
 
@@ -134,6 +140,37 @@ chat <message>      - Send chat message
 h, help             - Show commands
 q, quit             - Exit
 ```
+
+## 🎯 Game Rules & Mechanics
+
+### Player Requirements
+- **Minimum Players:** 5 players must join before challenges can be started
+- **Username Uniqueness:** Each username must be unique (case-insensitive matching)
+- **Session Management:** Players can disconnect and reconnect with the same username
+
+### Game Flow
+1. **Lobby Phase:** Players join and wait for minimum player count
+   - Chat is available during this phase
+   - Players can view dashboard and leaderboard
+   - Challenges are disabled until 5+ players join
+   
+2. **Active Game Phase:** Once 5+ players have joined
+   - Challenges become available for submission
+   - Chat is disabled to focus on problem-solving
+   - Real-time leaderboard updates
+   - Score tracking and achievements
+
+### Scoring System
+- Points are awarded for correct challenge submissions
+- Leaderboard ranks players by total score
+- Achievements unlock based on performance
+- Weekly activity is tracked and displayed
+
+### Real-time Features
+- **Live Updates:** Dashboard, leaderboard, and stats update automatically
+- **WebSocket Connection:** Real-time communication with connection status indicator
+- **Player Activity:** See when players join, solve challenges, and score points
+- **Server Stats:** Monitor active players, game readiness, and service health
 
 ## 🏗️ Architecture
 
@@ -198,6 +235,8 @@ q, quit             - Exit
    - Real-time bidirectional communication
    - Event broadcasting to all clients
    - Chat, notifications, live updates
+   - Internal HTTP API (port 8083) for backend-to-backend communication
+   - Game state synchronization across services
 
 ### Frontend Stack
 
@@ -382,6 +421,9 @@ Remove-Item -Recurse target
 **Real-time updates not working**
 - Check `logs\websocket.log` for errors
 - Ensure port 8082 is not blocked by firewall
+- Verify WebSocket connection status in the navbar (should show "Connected")
+- Check that the internal HTTP API on port 8083 is accessible (backend-to-backend communication)
+- Ensure all backend servers are running and can communicate with each other
 
 ### Login Issues
 
@@ -389,6 +431,17 @@ Remove-Item -Recurse target
 - Ensure all backend servers are running
 - Check `logs\tcp.log` and `logs\ssl.log`
 - Verify keystore exists: `resources\keystore.jks`
+
+**"Username already taken" error**
+- Each username can only be used by one active player at a time
+- If a player disconnects, their username becomes available again
+- Try using a different username or wait for the previous player to disconnect
+- Username comparison is case-insensitive (e.g., "Player1" and "player1" are the same)
+
+**"Game not ready" or challenges disabled**
+- Minimum 5 players must join before challenges can be started
+- Check the game status indicator on the Challenges page
+- Wait for more players to join, or start additional client sessions
 
 ## 📊 Performance Metrics
 
@@ -502,6 +555,17 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 
 ## 🔄 Recent Updates
 
+### Version 2.1 - Enhanced Game Features
+- ✅ **Minimum Players Requirement** - Game requires 5+ players before challenges can be started
+- ✅ **Real-time Updates** - Dashboard, leaderboard, and player stats update automatically via WebSocket
+- ✅ **Username Uniqueness** - Enforced unique usernames per session (case-insensitive)
+- ✅ **Chat Restrictions** - Chat only available while waiting for players (blocked after game starts)
+- ✅ **Enhanced Profile Page** - Displays complete real-time stats, achievements, and activity
+- ✅ **Connection Status** - Real-time WebSocket connection indicator (Connected/Connecting/Disconnected)
+- ✅ **Service Registry Health** - Self-heartbeat mechanism keeps registry marked as UP
+- ✅ **Internal HTTP API** - WebSocket server exposes HTTP API (port 8083) for backend communication
+- ✅ **Improved Error Handling** - Better error messages and user feedback throughout the application
+
 ### Version 2.0 - Full-Stack Implementation
 - ✅ Added complete React + Vite frontend
 - ✅ Implemented WebSocket bridge server
@@ -534,7 +598,13 @@ MIT License - Educational Project
 
 **Then open:** http://localhost:3000
 
-**Login:** Enter any username to start
+**Login:** Enter a unique username (minimum 5 players required to start challenges)
+
+**Note:** 
+- Usernames must be unique (case-insensitive)
+- Minimum 5 players must join before challenges can be started
+- Chat is only available while waiting for players
+- All stats and leaderboards update in real-time
 
 **Enjoy MathQuest Arena!** 🧮
 

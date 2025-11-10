@@ -18,3 +18,4 @@
 ? Client disconnected
 ? Client disconnected
 ? Received: {"type":"chat","payload":{"username":"iuyiy","message":"uigu","timestamp":1762808048482}}
+^C

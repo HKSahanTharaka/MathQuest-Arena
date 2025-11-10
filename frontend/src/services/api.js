@@ -76,6 +76,10 @@ class ApiService {
     return this.request('/server/stats');
   }
 
+  async getGameStatus() {
+    return this.request('/game/status');
+  }
+
   async getRegisteredServices() {
     try {
       const response = await fetch('http://localhost:8084/registry/services');

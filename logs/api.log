@@ -5,5 +5,44 @@
 ? All servers ready!
 ? REST API: http://localhost:8080
 ? SSL Auth: https://localhost:8443
-? Registered player: tt (ID: player-tt-1762366766160)
-? tt solved problem 1 (+100 points)
+? Registered player: aaa (ID: player-aaa-1762805607035)
+? Broadcasted server stats update
+? Broadcasted game status: 1/5
+? Broadcasted server stats update
+? Broadcasted player join: aaa
+? Registered player: iuhi (ID: player-iuhi-1762805635781)
+? Broadcasted server stats update
+? Broadcasted game status: 2/5
+? Broadcasted server stats update
+? Broadcasted player join: iuhi
+? Registered player: iuhiuhiu (ID: player-iuhiuhiu-1762805641456)
+? Broadcasted player join: iuhiuhiu
+? Broadcasted server stats update
+? Broadcasted game status: 3/5
+? Broadcasted server stats update
+? Registered player: tfctufrc (ID: player-tfctufrc-1762805647679)
+? Broadcasted game status: 4/5
+? Broadcasted player join: tfctufrc
+? Broadcasted server stats update
+? Broadcasted server stats update
+? Registered player: ututcr (ID: player-ututcr-1762805653277)
+? Game is now ready! Minimum players (5) reached!
+? Broadcasted game status: 5/5
+? Broadcasted player join: ututcr
+? Broadcasted server stats update
+? Broadcasted server stats update
+? aaa solved problem 1 (+100 points)
+? Broadcasted score update for aaa
+? Broadcasted activity: aaa solved 1
+? Broadcasted challenge solved: aaa solved 1
+? Broadcasted leaderboard update
+? aaa solved problem 2 (+200 points)
+? Broadcasted score update for aaa
+? Broadcasted challenge solved: aaa solved 2
+? Broadcasted leaderboard update
+? Broadcasted activity: aaa solved 2
+? ututcr solved problem 2 (+200 points)
+? Broadcasted activity: ututcr solved 2
+? Broadcasted leaderboard update
+? Broadcasted score update for ututcr
+? Broadcasted challenge solved: ututcr solved 2

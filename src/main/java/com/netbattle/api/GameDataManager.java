@@ -1,23 +1,31 @@
 package com.netbattle.api;
 
+import java.io.*;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class GameDataManager {
     private static GameDataManager instance;
+    private static final int MINIMUM_PLAYERS = 5;
     
     private Map<String, PlayerData> players;
     private Map<String, Set<String>> solvedChallenges;
     private Map<String, Long> playerLoginTimes;
     private Map<String, Map<String, Integer>> dailyActivity;
+    private Set<String> activePlayerIds; // Track currently active players
     private long serverStartTime;
+    private volatile boolean gameReady;
     
     private GameDataManager() {
         this.players = new ConcurrentHashMap<>();
         this.solvedChallenges = new ConcurrentHashMap<>();
         this.playerLoginTimes = new ConcurrentHashMap<>();
         this.dailyActivity = new ConcurrentHashMap<>();
+        this.activePlayerIds = ConcurrentHashMap.newKeySet();
         this.serverStartTime = System.currentTimeMillis();
+        this.gameReady = false;
     }
     
     public static synchronized GameDataManager getInstance() {
@@ -28,7 +36,10 @@ public class GameDataManager {
     }
     
     public void registerPlayer(String playerId, String username) {
-        if (!players.containsKey(playerId)) {
+        boolean isNewPlayer = !players.containsKey(playerId);
+        boolean wasAlreadyActive = activePlayerIds.contains(playerId);
+        
+        if (isNewPlayer) {
             players.put(playerId, new PlayerData(playerId, username));
             solvedChallenges.put(playerId, ConcurrentHashMap.newKeySet());
             playerLoginTimes.put(playerId, System.currentTimeMillis());
@@ -37,9 +48,97 @@ public class GameDataManager {
             playerLoginTimes.put(playerId, System.currentTimeMillis());
             System.out.println("👤 Player logged in: " + username);
         }
+        
+        // Add to active players
+        activePlayerIds.add(playerId);
+        
+        // Check if game is ready (minimum players reached)
+        updateGameReadyStatus();
+        
+        // Broadcast player join event if this is a new active player
+        if (!wasAlreadyActive) {
+            broadcastPlayerJoinToWebSocket(username, activePlayerIds.size(), MINIMUM_PLAYERS);
+            // Also broadcast server stats update
+            broadcastServerStatsUpdate();
+        }
+    }
+    
+    private void broadcastServerStatsUpdate() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/server-stats");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                Map<String, Object> serverStats = getServerStats();
+                String json = String.format(
+                    "{\"activePlayers\":%d,\"totalPlayers\":%d,\"totalChallenges\":%d,\"uptime\":%d,\"gameReady\":%b,\"minimumPlayers\":%d,\"currentPlayerCount\":%d}",
+                    serverStats.get("activePlayers"), serverStats.get("totalPlayers"), 
+                    serverStats.get("totalChallenges"), serverStats.get("uptime"),
+                    serverStats.get("gameReady"), serverStats.get("minimumPlayers"),
+                    serverStats.get("currentPlayerCount")
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted server stats update");
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    public void removeActivePlayer(String playerId) {
+        activePlayerIds.remove(playerId);
+        updateGameReadyStatus();
+    }
+    
+    private void updateGameReadyStatus() {
+        boolean wasReady = gameReady;
+        gameReady = activePlayerIds.size() >= MINIMUM_PLAYERS;
+        
+        if (!wasReady && gameReady) {
+            System.out.println("✅ Game is now ready! Minimum players (" + MINIMUM_PLAYERS + ") reached!");
+        } else if (wasReady && !gameReady) {
+            System.out.println("⏳ Waiting for more players. Currently: " + activePlayerIds.size() + "/" + MINIMUM_PLAYERS);
+        }
+        
+        // Broadcast game status update via WebSocket HTTP API
+        broadcastGameStatusToWebSocket(gameReady, activePlayerIds.size(), MINIMUM_PLAYERS);
+        // Also broadcast server stats when game status changes
+        broadcastServerStatsUpdate();
+    }
+    
+    public boolean isGameReady() {
+        return gameReady;
+    }
+    
+    public int getActivePlayerCount() {
+        return activePlayerIds.size();
+    }
+    
+    public int getMinimumPlayers() {
+        return MINIMUM_PLAYERS;
     }
     
     public boolean submitFlag(String playerId, String challengeId, int points) {
+        // Check if game is ready (minimum players joined)
+        if (!gameReady) {
+            System.out.println("⏸️  Cannot submit flag: Waiting for minimum players (" + activePlayerIds.size() + "/" + MINIMUM_PLAYERS + ")");
+            return false;
+        }
+        
         PlayerData player = players.get(playerId);
         if (player == null) return false;
         
@@ -60,7 +159,66 @@ public class GameDataManager {
         recordDailyActivity(playerId);
         
         System.out.println("✅ " + player.username + " solved problem " + challengeId + " (+"+points+" points)");
+        
+        // Get challenge name for broadcast
+        String challengeName = getChallengeName(challengeId);
+        
+        // Broadcast score update via WebSocket
+        broadcastScoreUpdate(playerId, player.username, player.totalScore, player.challengesSolved, calculatePlayerRank(playerId));
+        
+        // Broadcast activity event
+        broadcastActivity(player.username, challengeId, points);
+        
+        // Broadcast challenge solved event
+        broadcastChallengeSolved(playerId, player.username, challengeId, challengeName, points);
+        
+        // Broadcast leaderboard update
+        broadcastLeaderboardUpdate();
+        
         return true;
+    }
+    
+    private String getChallengeName(String challengeId) {
+        switch (challengeId) {
+            case "1": return "Basic Arithmetic";
+            case "2": return "Fibonacci Sequence";
+            case "3": return "Prime Numbers";
+            case "4": return "Quadratic Equation";
+            case "5": return "Circle Area";
+            default: return "Challenge " + challengeId;
+        }
+    }
+    
+    private void broadcastChallengeSolved(String playerId, String username, String challengeId, String challengeName, int points) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/challenge-solved");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"playerId\":\"%s\",\"username\":\"%s\",\"challengeId\":\"%s\",\"challengeName\":\"%s\",\"points\":%d}",
+                    playerId, username, challengeId, challengeName, points
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted challenge solved: " + username + " solved " + challengeId);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
     }
     
     private void recordDailyActivity(String playerId) {
@@ -211,16 +369,203 @@ public class GameDataManager {
     public Map<String, Object> getServerStats() {
         Map<String, Object> stats = new HashMap<>();
         
-        long activeCount = players.values().stream()
-            .filter(p -> isPlayerOnline(p.playerId))
-            .count();
+        // Use activePlayerIds.size() for active players (players currently in game)
+        // This is more accurate than checking last seen time
+        int activeCount = activePlayerIds.size();
         
-        stats.put("activePlayers", (int) activeCount);
+        stats.put("activePlayers", activeCount);
         stats.put("totalPlayers", players.size());
         stats.put("totalChallenges", 5);
         stats.put("uptime", System.currentTimeMillis() - serverStartTime);
+        stats.put("gameReady", gameReady);
+        stats.put("minimumPlayers", MINIMUM_PLAYERS);
+        stats.put("currentPlayerCount", activeCount);
         
         return stats;
+    }
+    
+    public Map<String, Object> getGameStatus() {
+        Map<String, Object> status = new HashMap<>();
+        status.put("gameReady", gameReady);
+        status.put("currentPlayerCount", activePlayerIds.size());
+        status.put("minimumPlayers", MINIMUM_PLAYERS);
+        status.put("playersNeeded", Math.max(0, MINIMUM_PLAYERS - activePlayerIds.size()));
+        return status;
+    }
+    
+    private void broadcastPlayerJoinToWebSocket(String username, int currentCount, int minimumPlayers) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/player-join");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"username\":\"%s\",\"currentCount\":%d,\"minimumPlayers\":%d}",
+                    username, currentCount, minimumPlayers
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted player join: " + username);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private void broadcastGameStatusToWebSocket(boolean gameReady, int currentCount, int minimumPlayers) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/game-status");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"gameReady\":%b,\"currentCount\":%d,\"minimumPlayers\":%d}",
+                    gameReady, currentCount, minimumPlayers
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted game status: " + currentCount + "/" + minimumPlayers);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private void broadcastScoreUpdate(String playerId, String username, int totalScore, int challengesSolved, int rank) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/score-update");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"playerId\":\"%s\",\"username\":\"%s\",\"totalScore\":%d,\"challengesSolved\":%d,\"rank\":%d}",
+                    playerId, username, totalScore, challengesSolved, rank
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted score update for " + username);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private void broadcastActivity(String username, String challengeId, int points) {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/activity");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"message\":\"%s solved challenge %s (+%d points)\",\"username\":\"%s\",\"challengeId\":\"%s\",\"points\":%d,\"timestamp\":%d}",
+                    username, challengeId, points, username, challengeId, points, System.currentTimeMillis()
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted activity: " + username + " solved " + challengeId);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private void broadcastLeaderboardUpdate() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/leaderboard-update");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                // Get top 10 players for leaderboard
+                List<Map<String, Object>> leaderboard = getLeaderboard();
+                String leaderboardJson = convertLeaderboardToJson(leaderboard);
+                String json = String.format("{\"leaderboard\":%s}", leaderboardJson);
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted leaderboard update");
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private String convertLeaderboardToJson(List<Map<String, Object>> leaderboard) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < leaderboard.size(); i++) {
+            if (i > 0) sb.append(",");
+            Map<String, Object> entry = leaderboard.get(i);
+            sb.append(String.format(
+                "{\"id\":\"%s\",\"username\":\"%s\",\"score\":%d,\"challengesSolved\":%d,\"rank\":%d,\"isOnline\":%b}",
+                entry.get("id"), entry.get("username"), entry.get("score"), 
+                entry.get("challengesSolved"), entry.get("rank"), entry.get("isOnline")
+            ));
+        }
+        sb.append("]");
+        return sb.toString();
     }
     
     public boolean hasPlayerSolved(String playerId, String challengeId) {

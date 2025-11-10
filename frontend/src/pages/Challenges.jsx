@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calculator, CheckCircle, Lock, Send, AlertCircle } from 'lucide-react';
+import { Calculator, CheckCircle, Lock, Send, AlertCircle, Users, Clock } from 'lucide-react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import api from '../services/api';
 
@@ -10,6 +10,12 @@ const Problems = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [filter, setFilter] = useState('all');
+  const [gameStatus, setGameStatus] = useState({
+    gameReady: false,
+    currentPlayerCount: 0,
+    minimumPlayers: 5,
+    playersNeeded: 5
+  });
 
   useWebSocket('challenge_solved', (data) => {
     setProblems(prev => prev.map(ch =>
@@ -21,6 +27,47 @@ const Problems = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   });
 
+  useWebSocket('game_status', (data) => {
+    setGameStatus({
+      gameReady: data.gameReady || false,
+      currentPlayerCount: data.currentPlayerCount || 0,
+      minimumPlayers: data.minimumPlayers || 5,
+      playersNeeded: data.playersNeeded || 5
+    });
+  });
+
+  useWebSocket('player_joined', (data) => {
+    const newCount = data.currentPlayerCount || 0;
+    const minPlayers = data.minimumPlayers || 5;
+    const isReady = newCount >= minPlayers;
+    
+    setGameStatus({
+      gameReady: isReady,
+      currentPlayerCount: newCount,
+      minimumPlayers: minPlayers,
+      playersNeeded: data.playersNeeded || Math.max(0, minPlayers - newCount)
+    });
+    
+    if (data.username) {
+      setMessage({ 
+        type: 'success', 
+        text: `${data.username} joined! (${newCount}/${minPlayers} players)` 
+      });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+    
+    // If game just became ready, show a special message
+    if (isReady && newCount === minPlayers) {
+      setTimeout(() => {
+        setMessage({ 
+          type: 'success', 
+          text: `🎉 Game is ready! You can now start solving challenges!` 
+        });
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      }, 500);
+    }
+  });
+
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -30,12 +77,37 @@ const Problems = () => {
         console.error('Failed to fetch problems:', error);
       }
     };
+    
+    const fetchGameStatus = async () => {
+      try {
+        const status = await api.getGameStatus();
+        setGameStatus(status);
+      } catch (error) {
+        console.error('Failed to fetch game status:', error);
+      }
+    };
+    
     fetchProblems();
+    fetchGameStatus();
+    
+    // Poll game status every 10 seconds as backup (WebSocket handles real-time updates)
+    const statusInterval = setInterval(fetchGameStatus, 10000);
+    
+    return () => clearInterval(statusInterval);
   }, []);
 
   const handleSubmitAnswer = async (e) => {
     e.preventDefault();
     if (!answerInput.trim() || !selectedProblem) return;
+    
+    if (!gameStatus.gameReady) {
+      setMessage({ 
+        type: 'error', 
+        text: `Waiting for more players. ${gameStatus.currentPlayerCount}/${gameStatus.minimumPlayers} players joined.` 
+      });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -50,7 +122,16 @@ const Problems = () => {
         setSelectedProblem(null);
         setAnswerInput('');
       } else {
-        setMessage({ type: 'error', text: 'Incorrect answer. Try again!' });
+        // Check if it's a game not ready message
+        if (result.message && result.message.includes('Waiting for more players')) {
+          setGameStatus(prev => ({
+            ...prev,
+            gameReady: result.gameReady || false,
+            currentPlayerCount: result.currentPlayerCount || prev.currentPlayerCount,
+            minimumPlayers: result.minimumPlayers || prev.minimumPlayers
+          }));
+        }
+        setMessage({ type: 'error', text: result.message || 'Incorrect answer. Try again!' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to submit answer' });
@@ -87,22 +168,75 @@ const Problems = () => {
           </p>
         </div>
 
-        <div className="flex space-x-2">
-          {['all', 'solved', 'unsolved'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filter === f
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 dark:bg-dark-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-dark-300'
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+        <div className="flex items-center space-x-4">
+          {/* Game Status Indicator */}
+          <div className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+            gameStatus.gameReady 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+          }`}>
+            <Users className="w-5 h-5" />
+            <span className="font-medium">
+              {gameStatus.gameReady ? (
+                'Game Ready!'
+              ) : (
+                `${gameStatus.currentPlayerCount}/${gameStatus.minimumPlayers} Players`
+              )}
+            </span>
+          </div>
+
+          <div className="flex space-x-2">
+            {['all', 'solved', 'unsolved'].map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  filter === f
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 dark:bg-dark-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-dark-300'
+                }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Waiting Screen */}
+      {!gameStatus.gameReady && (
+        <div className="card bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center space-x-4 p-6">
+            <div className="flex-shrink-0">
+              <Clock className="w-12 h-12 text-yellow-600 dark:text-yellow-400 animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-yellow-900 dark:text-yellow-100 mb-2">
+                Waiting for Players to Join
+              </h3>
+              <p className="text-yellow-800 dark:text-yellow-200 mb-2">
+                A minimum of <strong>{gameStatus.minimumPlayers} players</strong> must join before you can start solving challenges.
+              </p>
+              <div className="flex items-center space-x-2 mt-3">
+                <div className="flex-1 bg-yellow-200 dark:bg-yellow-800 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className="bg-yellow-600 dark:bg-yellow-400 h-full transition-all duration-500"
+                    style={{ width: `${(gameStatus.currentPlayerCount / gameStatus.minimumPlayers) * 100}%` }}
+                  />
+                </div>
+                <span className="text-sm font-bold text-yellow-900 dark:text-yellow-100">
+                  {gameStatus.currentPlayerCount} / {gameStatus.minimumPlayers}
+                </span>
+              </div>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
+                {gameStatus.playersNeeded > 0 
+                  ? `${gameStatus.playersNeeded} more player${gameStatus.playersNeeded > 1 ? 's' : ''} needed`
+                  : 'Almost ready!'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {message.text && (
         <div className={`p-4 rounded-lg flex items-center space-x-2 ${
@@ -216,6 +350,13 @@ const Problems = () => {
 
             {!selectedProblem.solved && (
               <form onSubmit={handleSubmitAnswer} className="space-y-4">
+                {!gameStatus.gameReady && (
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 mb-4">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      ⏸️ Submissions are disabled until {gameStatus.minimumPlayers} players join ({gameStatus.currentPlayerCount}/{gameStatus.minimumPlayers})
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Your Answer
@@ -228,11 +369,12 @@ const Problems = () => {
                       placeholder="Enter your answer..."
                       className="input-field flex-1"
                       required
+                      disabled={!gameStatus.gameReady}
                     />
                     <button
                       type="submit"
-                      disabled={submitting}
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 flex items-center space-x-2"
+                      disabled={submitting || !gameStatus.gameReady}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
                       <Send className="w-5 h-5" />
                       <span>Submit</span>

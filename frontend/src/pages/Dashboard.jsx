@@ -16,27 +16,120 @@ const Dashboard = () => {
   const [serverStats, setServerStats] = useState({
     activePlayers: 0,
     totalChallenges: 0,
-    uptime: '0h'
+    uptime: '0h',
+    gameReady: false,
+    currentPlayerCount: 0,
+    minimumPlayers: 5
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [services, setServices] = useState([]);
 
+  // Real-time player stats update
   useWebSocket('stats_update', (data) => {
     if (data.playerId === user.id) {
       setStats(prev => ({
-        ...prev,
-        ...data
+        score: data.totalScore !== undefined ? data.totalScore : prev.score,
+        rank: data.rank !== undefined ? data.rank : prev.rank,
+        challengesSolved: data.challengesSolved !== undefined ? data.challengesSolved : prev.challengesSolved,
+        playTime: prev.playTime // Play time doesn't update in real-time
       }));
+      
+      // Update score history when score changes
+      if (data.totalScore !== undefined && data.totalScore > 0) {
+        setScoreHistory(prev => {
+          const newEntry = {
+            time: 'now',
+            score: data.totalScore,
+            timestamp: Date.now()
+          };
+          // Add new entry if score changed
+          const updated = [...prev];
+          // Convert previous "now" entries to relative time
+          const now = Date.now();
+          const updatedWithTime = updated.map((entry, index) => {
+            if (entry.time === 'now' && entry.timestamp) {
+              const elapsed = now - entry.timestamp;
+              const hours = Math.floor(elapsed / 3600000);
+              const minutes = Math.floor((elapsed % 3600000) / 60000);
+              let timeLabel;
+              if (hours > 0) {
+                timeLabel = `${hours}h ago`;
+              } else if (minutes > 0) {
+                timeLabel = `${minutes}m ago`;
+              } else {
+                timeLabel = 'now';
+              }
+              return { ...entry, time: timeLabel };
+            }
+            return entry;
+          });
+          updatedWithTime.unshift(newEntry);
+          // Keep only last 20 entries
+          return updatedWithTime.slice(0, 20);
+        });
+        
+        // Refresh full player stats to get updated play time and other details
+        api.getPlayerStats(user.id).then(playerStats => {
+          setStats(prev => ({
+            ...prev,
+            playTime: formatPlayTime(playerStats.totalPlayTime || 0)
+          }));
+        }).catch(console.error);
+      }
     }
   });
 
+  // Real-time server stats update
   useWebSocket('server_stats', (data) => {
-    setServerStats(data);
+    setServerStats(prev => ({
+      activePlayers: data.activePlayers !== undefined ? data.activePlayers : prev.activePlayers,
+      totalChallenges: data.totalChallenges !== undefined ? data.totalChallenges : prev.totalChallenges,
+      uptime: data.uptime !== undefined ? formatUptime(data.uptime) : prev.uptime,
+      gameReady: data.gameReady !== undefined ? data.gameReady : prev.gameReady,
+      currentPlayerCount: data.currentPlayerCount !== undefined ? data.currentPlayerCount : prev.currentPlayerCount,
+      minimumPlayers: data.minimumPlayers !== undefined ? data.minimumPlayers : prev.minimumPlayers
+    }));
   });
 
+  // Real-time game status update
+  useWebSocket('game_status', (data) => {
+    setServerStats(prev => ({
+      ...prev,
+      gameReady: data.gameReady !== undefined ? data.gameReady : prev.gameReady,
+      currentPlayerCount: data.currentPlayerCount !== undefined ? data.currentPlayerCount : prev.currentPlayerCount,
+      minimumPlayers: data.minimumPlayers !== undefined ? data.minimumPlayers : prev.minimumPlayers
+    }));
+  });
+
+  // Real-time player join events
+  useWebSocket('player_joined', (data) => {
+    setServerStats(prev => ({
+      ...prev,
+      currentPlayerCount: data.currentPlayerCount !== undefined ? data.currentPlayerCount : prev.currentPlayerCount,
+      gameReady: data.currentPlayerCount >= (prev.minimumPlayers || 5)
+    }));
+    setRecentActivity(prev => [{
+      message: `${data.username || 'A player'} joined the game`,
+      timestamp: Date.now()
+    }, ...prev].slice(0, 10));
+  });
+
+  // Real-time activity events (challenge solves, etc.)
   useWebSocket('activity', (data) => {
-    setRecentActivity(prev => [data, ...prev].slice(0, 10));
+    if (data && data.message) {
+      setRecentActivity(prev => [{
+        message: data.message,
+        timestamp: data.timestamp || Date.now()
+      }, ...prev].slice(0, 10));
+    }
+  });
+  
+  // Real-time leaderboard updates (for future use)
+  useWebSocket('leaderboard_update', (data) => {
+    // Leaderboard updates can trigger a refresh if needed
+    // For now, we'll let the polling handle it, but this is available for real-time updates
+    console.log('Leaderboard updated via WebSocket');
   });
 
   useEffect(() => {
@@ -58,7 +151,10 @@ const Dashboard = () => {
         setServerStats({
           activePlayers: serverData.activePlayers || 0,
           totalChallenges: serverData.totalChallenges || 0,
-          uptime: formatUptime(serverData.uptime || 0)
+          uptime: formatUptime(serverData.uptime || 0),
+          gameReady: serverData.gameReady || false,
+          currentPlayerCount: serverData.currentPlayerCount || 0,
+          minimumPlayers: serverData.minimumPlayers || 5
         });
 
         const history = (playerStats.scoreHistory || []).map((event, index) => {
@@ -90,11 +186,39 @@ const Dashboard = () => {
 
     fetchData();
     
-    const interval = setInterval(() => {
+    // Poll services every 30 seconds (WebSocket handles most real-time updates)
+    const servicesInterval = setInterval(() => {
       api.getRegisteredServices().then(setServices).catch(console.error);
-    }, 15000);
+    }, 30000);
     
-    return () => clearInterval(interval);
+    // Update score history time labels every minute
+    const timeUpdateInterval = setInterval(() => {
+      setScoreHistory(prev => {
+        const now = Date.now();
+        return prev.map(entry => {
+          if (entry.timestamp) {
+            const elapsed = now - entry.timestamp;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            let timeLabel;
+            if (hours > 0) {
+              timeLabel = `${hours}h ago`;
+            } else if (minutes > 0) {
+              timeLabel = `${minutes}m ago`;
+            } else {
+              timeLabel = 'now';
+            }
+            return { ...entry, time: timeLabel };
+          }
+          return entry;
+        });
+      });
+    }, 60000); // Update every minute
+    
+    return () => {
+      clearInterval(servicesInterval);
+      clearInterval(timeUpdateInterval);
+    };
   }, [user.id]);
 
   const formatPlayTime = (millis) => {
@@ -235,6 +359,60 @@ const Dashboard = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Game Status Card */}
+        <div className={`p-4 rounded-lg border-2 mb-4 ${
+          serverStats.gameReady
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${
+                serverStats.gameReady
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
+              }`}>
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Game Status
+                </p>
+                <p className={`text-lg font-bold ${
+                  serverStats.gameReady
+                    ? 'text-green-900 dark:text-green-100'
+                    : 'text-yellow-900 dark:text-yellow-100'
+                }`}>
+                  {serverStats.gameReady ? 'Ready to Play!' : 'Waiting for Players'}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {serverStats.currentPlayerCount} / {serverStats.minimumPlayers}
+              </p>
+              <p className="text-xs text-gray-500">
+                players joined
+              </p>
+            </div>
+          </div>
+          {!serverStats.gameReady && (
+            <div className="mt-3 pt-3 border-t border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 bg-yellow-200 dark:bg-yellow-800 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-yellow-600 dark:bg-yellow-400 h-full transition-all duration-500"
+                    style={{ width: `${(serverStats.currentPlayerCount / serverStats.minimumPlayers) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-yellow-900 dark:text-yellow-100">
+                  {serverStats.minimumPlayers - serverStats.currentPlayerCount} more needed
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-gray-200 dark:border-dark-200 pt-4">

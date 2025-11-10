@@ -42,6 +42,7 @@ public class RestApiServer {
         server.createContext("/api/stats", this::handleStats);
         server.createContext("/api/achievements", this::handleAchievements);
         server.createContext("/api/server/stats", this::handleServerStats);
+        server.createContext("/api/game/status", this::handleGameStatus);
         
         server.start();
         System.out.println("🌐 REST API Server started on port " + PORT);
@@ -167,6 +168,19 @@ public class RestApiServer {
                 return;
             }
             
+            // Check if game is ready (minimum players joined)
+            if (!gameData.isGameReady()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("correct", false);
+                response.put("message", "Waiting for more players to join. " + 
+                    gameData.getActivePlayerCount() + "/" + gameData.getMinimumPlayers() + " players joined.");
+                response.put("gameReady", false);
+                response.put("currentPlayerCount", gameData.getActivePlayerCount());
+                response.put("minimumPlayers", gameData.getMinimumPlayers());
+                sendJson(exchange, 200, response);
+                return;
+            }
+            
             if (gameData.hasPlayerSolved(playerId, challengeId)) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("correct", false);
@@ -186,13 +200,19 @@ public class RestApiServer {
             
             Map<String, Object> response = new HashMap<>();
             response.put("correct", isCorrect);
+            response.put("gameReady", true);
             
             if (isCorrect) {
                 int points = getChallengePoints(challengeId);
-                gameData.submitFlag(playerId, challengeId, points);
+                boolean submitted = gameData.submitFlag(playerId, challengeId, points);
                 
-                response.put("message", "Correct! Excellent work!");
-                response.put("points", points);
+                if (submitted) {
+                    response.put("message", "Correct! Excellent work!");
+                    response.put("points", points);
+                } else {
+                    response.put("correct", false);
+                    response.put("message", "Unable to submit. Please try again.");
+                }
             } else {
                 response.put("message", "Incorrect answer. Try again!");
             }
@@ -257,6 +277,13 @@ public class RestApiServer {
         
         Map<String, Object> serverStats = gameData.getServerStats();
         sendJson(exchange, 200, serverStats);
+    }
+    
+    private void handleGameStatus(HttpExchange exchange) throws IOException {
+        addCorsHeaders(exchange);
+        
+        Map<String, Object> gameStatus = gameData.getGameStatus();
+        sendJson(exchange, 200, gameStatus);
     }
     
     private String getPlayerIdFromRequest(HttpExchange exchange) {

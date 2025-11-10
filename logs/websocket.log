@@ -1,40 +1,20 @@
 ? WebSocket server started on port 8082
 ? HTTP API server started on port 8083
-? New WebSocket connection from: /127.0.0.1:56466
-? New WebSocket connection from: /127.0.0.1:56470
-? New WebSocket connection from: /127.0.0.1:56471
-? New WebSocket connection from: /127.0.0.1:56472
-? New WebSocket connection from: /127.0.0.1:56473
-? Received: ?
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:62814
 ? Received: ?
 ? Client disconnected
-? New WebSocket connection from: /127.0.0.1:56504
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56505
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:62831
 ? Received: 
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56520
-? Client disconnected
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:62852
+? New WebSocket connection from: /127.0.0.1:62911
+? New WebSocket connection from: /127.0.0.1:62919
+? Received: 
+? New WebSocket connection from: /127.0.0.1:62928
 ? Received: ?
-? New WebSocket connection from: /127.0.0.1:56570
-? Received: 
-? New WebSocket connection from: /127.0.0.1:56580
-? Received: ?
-? New WebSocket connection from: /127.0.0.1:56591
-? Received: 
-? New WebSocket connection from: /127.0.0.1:56601
-? Received: ?
-? New WebSocket connection from: /127.0.0.1:56607
-? Received: 
-? New WebSocket connection from: /127.0.0.1:56617
-? Received: 
-? Client disconnected
-? Client disconnected
-? New WebSocket connection from: /127.0.0.1:56627
-? Client disconnected
-? Client disconnected
-? Client disconnected
+? New WebSocket connection from: /127.0.0.1:62940
 ? Received: ?
 ? Client disconnected
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56648
 ? Client disconnected
 ? Client disconnected
 ? Client disconnected
+? Received: {"type":"chat","payload":{"username":"iuyiy","message":"uigu","timestamp":1762808048482}}

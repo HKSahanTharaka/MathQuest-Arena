@@ -35,6 +35,7 @@ public class RestApiServer {
         server.setExecutor(Executors.newFixedThreadPool(10));
         
         server.createContext("/api/auth/login", this::handleLogin);
+        server.createContext("/api/auth/logout", this::handleLogout);
         server.createContext("/api/auth/register", this::handleRegister);
         server.createContext("/api/problems", this::handleChallenges);
         server.createContext("/api/problems/submit", this::handleSubmitFlag);
@@ -74,10 +75,21 @@ public class RestApiServer {
                 return;
             }
             
+            // Check if username is already taken
+            if (gameData.isUsernameTaken(username)) {
+                sendError(exchange, 409, "Username '" + username + "' is already taken by another player");
+                return;
+            }
+            
             String playerId = "player-" + username + "-" + System.currentTimeMillis();
             String token = java.util.UUID.randomUUID().toString();
             
-            gameData.registerPlayer(playerId, username);
+            try {
+                gameData.registerPlayer(playerId, username);
+            } catch (IllegalArgumentException e) {
+                sendError(exchange, 409, e.getMessage());
+                return;
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -88,6 +100,36 @@ public class RestApiServer {
             sendJson(exchange, 200, response);
         } catch (Exception e) {
             System.err.println("Login error: " + e.getMessage());
+            sendError(exchange, 500, "Internal server error");
+        }
+    }
+    
+    private void handleLogout(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            sendError(exchange, 405, "Method not allowed");
+            return;
+        }
+        
+        addCorsHeaders(exchange);
+        
+        try {
+            String playerId = getPlayerIdFromRequest(exchange);
+            
+            if (playerId == null || playerId.isEmpty()) {
+                sendError(exchange, 400, "Player ID is required");
+                return;
+            }
+            
+            // Remove player from active players (this will free up the username)
+            gameData.removeActivePlayer(playerId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Logged out successfully");
+            
+            sendJson(exchange, 200, response);
+        } catch (Exception e) {
+            System.err.println("Logout error: " + e.getMessage());
             sendError(exchange, 500, "Internal server error");
         }
     }
@@ -249,12 +291,17 @@ public class RestApiServer {
         
         String playerId = getPlayerIdFromRequest(exchange);
         
-        if (playerId == null) {
+        if (playerId == null || playerId.isEmpty()) {
+            System.err.println("❌ Stats request: Player ID not found in request headers");
             sendError(exchange, 401, "Player not authenticated");
             return;
         }
         
+        System.out.println("📊 Fetching stats for player: " + playerId);
         Map<String, Object> stats = gameData.getPlayerStats(playerId);
+        System.out.println("📊 Stats retrieved - Score: " + stats.get("totalScore") + 
+                          ", Challenges: " + stats.get("challengesSolved") + 
+                          ", Rank: " + stats.get("rank"));
         sendJson(exchange, 200, stats);
     }
     

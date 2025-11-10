@@ -7,26 +7,4 @@
       GET    /registry/discover   - Discover service by name
       GET    /registry/stats      - Registry statistics
 ? Service registered: Service Registry at http://localhost:8084
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
-??  Unhealthy services detected: Service Registry
+? Self-heartbeat started for Service Registry

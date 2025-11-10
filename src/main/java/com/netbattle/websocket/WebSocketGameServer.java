@@ -1,5 +1,6 @@
 package com.netbattle.websocket;
 
+import com.netbattle.api.GameDataManager;
 import com.netbattle.common.protocol.*;
 import com.sun.net.httpserver.*;
 import java.io.*;
@@ -20,10 +21,12 @@ public class WebSocketGameServer {
     private Map<SocketChannel, WebSocketClient> clients;
     private HttpServer httpServer;
     private volatile boolean running;
+    private GameDataManager gameData;
     
     public WebSocketGameServer() {
         this.clients = new ConcurrentHashMap<>();
         this.running = false;
+        this.gameData = GameDataManager.getInstance();
     }
     
     public void start() throws IOException {
@@ -226,7 +229,16 @@ public class WebSocketGameServer {
         System.out.println("📨 Received: " + message);
         
         if (message.contains("\"type\":\"chat\"")) {
-            broadcast(message, null);
+            // Check if game is ready - if so, block chat
+            if (gameData.isGameReady()) {
+                // Game has started, chat is disabled
+                String errorMessage = "{\"type\":\"chat_error\",\"payload\":{\"message\":\"Chat is disabled after the game has started. Chat is only available while waiting for players.\"}}";
+                sendMessage(channel, errorMessage);
+                System.out.println("🚫 Chat blocked - game has started");
+            } else {
+                // Game not ready yet, allow chat
+                broadcast(message, null);
+            }
         } else if (message.contains("\"type\":\"challenge_solved\"")) {
             broadcast(message, channel);
         } else if (message.contains("\"type\":\"stats_update\"")) {

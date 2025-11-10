@@ -15,6 +15,7 @@ public class GameDataManager {
     private Map<String, Long> playerLoginTimes;
     private Map<String, Map<String, Integer>> dailyActivity;
     private Set<String> activePlayerIds; // Track currently active players
+    private Map<String, String> activeUsernames; // Track active usernames (username -> playerId)
     private long serverStartTime;
     private volatile boolean gameReady;
     
@@ -24,6 +25,7 @@ public class GameDataManager {
         this.playerLoginTimes = new ConcurrentHashMap<>();
         this.dailyActivity = new ConcurrentHashMap<>();
         this.activePlayerIds = ConcurrentHashMap.newKeySet();
+        this.activeUsernames = new ConcurrentHashMap<>();
         this.serverStartTime = System.currentTimeMillis();
         this.gameReady = false;
     }
@@ -35,7 +37,43 @@ public class GameDataManager {
         return instance;
     }
     
+    /**
+     * Check if a username is already taken by an active player
+     * @param username The username to check
+     * @return true if username is already taken, false otherwise
+     */
+    public boolean isUsernameTaken(String username) {
+        String normalizedUsername = username.toLowerCase().trim();
+        String existingPlayerId = activeUsernames.get(normalizedUsername);
+        
+        if (existingPlayerId != null) {
+            // Check if the existing player is still active
+            if (activePlayerIds.contains(existingPlayerId)) {
+                return true;
+            } else {
+                // Player is no longer active, remove from active usernames
+                activeUsernames.remove(normalizedUsername);
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Register a player with a username
+     * @param playerId The unique player ID
+     * @param username The username (must be unique among active players)
+     * @throws IllegalArgumentException if username is already taken
+     */
     public void registerPlayer(String playerId, String username) {
+        String normalizedUsername = username.toLowerCase().trim();
+        
+        // Check if username is already taken by an active player
+        String existingPlayerId = activeUsernames.get(normalizedUsername);
+        if (existingPlayerId != null && activePlayerIds.contains(existingPlayerId) && !existingPlayerId.equals(playerId)) {
+            throw new IllegalArgumentException("Username '" + username + "' is already taken by another player");
+        }
+        
         boolean isNewPlayer = !players.containsKey(playerId);
         boolean wasAlreadyActive = activePlayerIds.contains(playerId);
         
@@ -45,12 +83,20 @@ public class GameDataManager {
             playerLoginTimes.put(playerId, System.currentTimeMillis());
             System.out.println("📝 Registered player: " + username + " (ID: " + playerId + ")");
         } else {
+            // Player is reconnecting - verify username matches
+            PlayerData player = players.get(playerId);
+            if (player != null && !player.username.equals(username)) {
+                // Username mismatch - this shouldn't happen, but log it
+                System.out.println("⚠️  Warning: Username mismatch for player " + playerId + 
+                    ". Expected: " + player.username + ", Got: " + username);
+            }
             playerLoginTimes.put(playerId, System.currentTimeMillis());
             System.out.println("👤 Player logged in: " + username);
         }
         
-        // Add to active players
+        // Add to active players and active usernames
         activePlayerIds.add(playerId);
+        activeUsernames.put(normalizedUsername, playerId);
         
         // Check if game is ready (minimum players reached)
         updateGameReadyStatus();
@@ -101,6 +147,17 @@ public class GameDataManager {
     
     public void removeActivePlayer(String playerId) {
         activePlayerIds.remove(playerId);
+        
+        // Remove from active usernames when player becomes inactive
+        PlayerData player = players.get(playerId);
+        if (player != null) {
+            String normalizedUsername = player.username.toLowerCase().trim();
+            String mappedPlayerId = activeUsernames.get(normalizedUsername);
+            if (playerId.equals(mappedPlayerId)) {
+                activeUsernames.remove(normalizedUsername);
+            }
+        }
+        
         updateGameReadyStatus();
     }
     
@@ -234,7 +291,9 @@ public class GameDataManager {
     
     private String getDayOfWeek() {
         java.time.LocalDate date = java.time.LocalDate.now();
-        return date.getDayOfWeek().toString().substring(0, 3);
+        String day = date.getDayOfWeek().toString().substring(0, 3);
+        // Capitalize first letter, lowercase rest (e.g., "MON" -> "Mon")
+        return day.charAt(0) + day.substring(1).toLowerCase();
     }
     
     public List<Map<String, Object>> getLeaderboard() {
@@ -260,7 +319,23 @@ public class GameDataManager {
     
     public Map<String, Object> getPlayerStats(String playerId) {
         PlayerData player = players.get(playerId);
+        
+        // If player doesn't exist, try to find by matching playerId prefix
+        // (in case playerId format changed or there's a mismatch)
         if (player == null) {
+            System.out.println("⚠️  Player not found with exact ID: " + playerId);
+            // Try to find player by username if playerId contains username
+            for (PlayerData p : players.values()) {
+                if (p.playerId.equals(playerId) || playerId.contains(p.username)) {
+                    player = p;
+                    System.out.println("✅ Found player by username match: " + p.username);
+                    break;
+                }
+            }
+        }
+        
+        if (player == null) {
+            System.out.println("⚠️  Returning default stats for playerId: " + playerId);
             return getDefaultStats(playerId);
         }
         
@@ -281,6 +356,9 @@ public class GameDataManager {
         stats.put("scoreHistory", formatScoreHistory(player.scoreHistory));
         stats.put("weeklyActivity", getWeeklyActivity(playerId));
         
+        System.out.println("✅ Stats for " + player.username + ": Score=" + player.totalScore + 
+                          ", Solved=" + player.challengesSolved + ", Rank=" + rank);
+        
         return stats;
     }
     
@@ -293,7 +371,12 @@ public class GameDataManager {
         for (String day : daysOfWeek) {
             Map<String, Object> dayData = new HashMap<>();
             dayData.put("day", day);
-            dayData.put("solves", playerActivity.getOrDefault(day.toUpperCase(), 0));
+            // Check both uppercase and capitalized versions for backwards compatibility
+            int solves = playerActivity.getOrDefault(day.toUpperCase(), 0);
+            if (solves == 0) {
+                solves = playerActivity.getOrDefault(day, 0);
+            }
+            dayData.put("solves", solves);
             weeklyData.add(dayData);
         }
         
@@ -323,6 +406,7 @@ public class GameDataManager {
         stats.put("lastSeen", System.currentTimeMillis());
         stats.put("solvedChallenges", new ArrayList<>());
         stats.put("scoreHistory", new ArrayList<>());
+        stats.put("weeklyActivity", getWeeklyActivity(playerId)); // Include weekly activity even for new players
         return stats;
     }
     

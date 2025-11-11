@@ -19,7 +19,7 @@ const Dashboard = () => {
     uptime: '0h',
     gameReady: false,
     currentPlayerCount: 0,
-    minimumPlayers: 5
+    minimumPlayers: 3
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [scoreHistory, setScoreHistory] = useState([]);
@@ -107,7 +107,7 @@ const Dashboard = () => {
     setServerStats(prev => ({
       ...prev,
       currentPlayerCount: data.currentPlayerCount !== undefined ? data.currentPlayerCount : prev.currentPlayerCount,
-      gameReady: data.currentPlayerCount >= (prev.minimumPlayers || 5)
+      gameReady: data.currentPlayerCount >= (prev.minimumPlayers || 3)
     }));
     setRecentActivity(prev => [{
       message: `${data.username || 'A player'} joined the game`,
@@ -154,7 +154,7 @@ const Dashboard = () => {
           uptime: formatUptime(serverData.uptime || 0),
           gameReady: serverData.gameReady || false,
           currentPlayerCount: serverData.currentPlayerCount || 0,
-          minimumPlayers: serverData.minimumPlayers || 5
+          minimumPlayers: serverData.minimumPlayers || 3
         });
 
         const history = (playerStats.scoreHistory || []).map((event, index) => {

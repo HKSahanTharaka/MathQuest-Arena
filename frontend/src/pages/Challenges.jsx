@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Calculator, CheckCircle, Lock, Send, AlertCircle, Users, Clock } from 'lucide-react';
+import { Calculator, CheckCircle, Lock, Send, AlertCircle, Users, Clock, Play } from 'lucide-react';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 const Problems = () => {
+  const { user } = useAuth();
   const [problems, setProblems] = useState([]);
   const [selectedProblem, setSelectedProblem] = useState(null);
   const [answerInput, setAnswerInput] = useState('');
@@ -13,9 +15,15 @@ const Problems = () => {
   const [gameStatus, setGameStatus] = useState({
     gameReady: false,
     currentPlayerCount: 0,
-    minimumPlayers: 5,
-    playersNeeded: 5
+    minimumPlayers: 3,
+    playersNeeded: 3,
+    sessionStarted: false,
+    sessionStartTime: 0,
+    sessionEndTime: 0,
+    remainingTime: 0
   });
+  const [isFirstPlayer, setIsFirstPlayer] = useState(false);
+  const [startingSession, setStartingSession] = useState(false);
 
   useWebSocket('challenge_solved', (data) => {
     setProblems(prev => prev.map(ch =>
@@ -28,25 +36,64 @@ const Problems = () => {
   });
 
   useWebSocket('game_status', (data) => {
-    setGameStatus({
+    setGameStatus(prev => ({
+      ...prev,
       gameReady: data.gameReady || false,
       currentPlayerCount: data.currentPlayerCount || 0,
-      minimumPlayers: data.minimumPlayers || 5,
-      playersNeeded: data.playersNeeded || 5
+      minimumPlayers: data.minimumPlayers || 3,
+      playersNeeded: data.playersNeeded || 3,
+      sessionStarted: data.sessionStarted || prev.sessionStarted,
+      sessionStartTime: data.sessionStartTime || prev.sessionStartTime,
+      sessionEndTime: data.sessionEndTime || prev.sessionEndTime,
+      remainingTime: data.remainingTime || prev.remainingTime
+    }));
+    
+    // Update first player status if firstPlayerId is provided
+    if (user && user.id && data.firstPlayerId) {
+      setIsFirstPlayer(user.id === data.firstPlayerId);
+    }
+  });
+
+  useWebSocket('session_started', (data) => {
+    setGameStatus(prev => ({
+      ...prev,
+      sessionStarted: true,
+      sessionStartTime: data.startTime,
+      sessionEndTime: data.endTime,
+      remainingTime: data.duration
+    }));
+    setMessage({ 
+      type: 'success', 
+      text: '🎮 Game session started! You have 10 minutes to solve challenges!' 
     });
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+  });
+
+  useWebSocket('session_ended', () => {
+    setGameStatus(prev => ({
+      ...prev,
+      sessionStarted: false,
+      remainingTime: 0
+    }));
+    setMessage({ 
+      type: 'info', 
+      text: '⏰ Game session ended! Chat is now available again.' 
+    });
+    setTimeout(() => setMessage({ type: '', text: '' }), 7000);
   });
 
   useWebSocket('player_joined', (data) => {
     const newCount = data.currentPlayerCount || 0;
-    const minPlayers = data.minimumPlayers || 5;
+    const minPlayers = data.minimumPlayers || 3;
     const isReady = newCount >= minPlayers;
     
-    setGameStatus({
+    setGameStatus(prev => ({
+      ...prev,
       gameReady: isReady,
       currentPlayerCount: newCount,
       minimumPlayers: minPlayers,
       playersNeeded: data.playersNeeded || Math.max(0, minPlayers - newCount)
-    });
+    }));
     
     if (data.username) {
       setMessage({ 
@@ -61,7 +108,7 @@ const Problems = () => {
       setTimeout(() => {
         setMessage({ 
           type: 'success', 
-          text: `🎉 Game is ready! You can now start solving challenges!` 
+          text: `🎉 Minimum players reached! First player can start the session!` 
         });
         setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       }, 500);
@@ -82,6 +129,14 @@ const Problems = () => {
       try {
         const status = await api.getGameStatus();
         setGameStatus(status);
+        
+        // Check if current user is first player by comparing with firstPlayerId from server
+        if (user && user.id && status.firstPlayerId) {
+          setIsFirstPlayer(user.id === status.firstPlayerId);
+        } else if (user && user.isFirstPlayer !== undefined) {
+          // Fallback to isFirstPlayer from login response
+          setIsFirstPlayer(user.isFirstPlayer);
+        }
       } catch (error) {
         console.error('Failed to fetch game status:', error);
       }
@@ -94,16 +149,61 @@ const Problems = () => {
     const statusInterval = setInterval(fetchGameStatus, 10000);
     
     return () => clearInterval(statusInterval);
-  }, []);
+  }, [user]);
+
+  // Timer for session countdown
+  useEffect(() => {
+    if (!gameStatus.sessionStarted) return;
+    
+    const timer = setInterval(() => {
+      setGameStatus(prev => {
+        const remaining = prev.sessionEndTime - Date.now();
+        if (remaining <= 0) {
+          clearInterval(timer);
+          return { ...prev, remainingTime: 0, sessionStarted: false };
+        }
+        return { ...prev, remainingTime: remaining };
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [gameStatus.sessionStarted, gameStatus.sessionEndTime]);
+
+  const handleStartSession = async () => {
+    setStartingSession(true);
+    try {
+      const result = await api.startSession();
+      if (result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: '🎮 Game session started! Good luck!' 
+        });
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: result.message || 'Failed to start session' 
+        });
+      }
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Failed to start session' 
+      });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+    } finally {
+      setStartingSession(false);
+    }
+  };
 
   const handleSubmitAnswer = async (e) => {
     e.preventDefault();
     if (!answerInput.trim() || !selectedProblem) return;
     
-    if (!gameStatus.gameReady) {
+    if (!gameStatus.sessionStarted) {
       setMessage({ 
         type: 'error', 
-        text: `Waiting for more players. ${gameStatus.currentPlayerCount}/${gameStatus.minimumPlayers} players joined.` 
+        text: 'Session has not started yet. Waiting for first player to start the game.' 
       });
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       return;
@@ -150,6 +250,13 @@ const Problems = () => {
     }
   };
 
+  const formatTime = (milliseconds) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const filteredProblems = problems.filter(ch => {
     if (filter === 'solved') return ch.solved;
     if (filter === 'unsolved') return !ch.solved;
@@ -171,19 +278,40 @@ const Problems = () => {
         <div className="flex items-center space-x-4">
           {/* Game Status Indicator */}
           <div className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-            gameStatus.gameReady 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+            gameStatus.sessionStarted
+              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' 
+              : gameStatus.gameReady 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
           }`}>
             <Users className="w-5 h-5" />
             <span className="font-medium">
-              {gameStatus.gameReady ? (
-                'Game Ready!'
+              {gameStatus.sessionStarted ? (
+                <>
+                  <Clock className="w-4 h-4 inline mr-1" />
+                  {formatTime(gameStatus.remainingTime)}
+                </>
+              ) : gameStatus.gameReady ? (
+                'Ready to Start!'
               ) : (
                 `${gameStatus.currentPlayerCount}/${gameStatus.minimumPlayers} Players`
               )}
             </span>
           </div>
+
+          {/* Start Button for First Player */}
+          {gameStatus.gameReady && !gameStatus.sessionStarted && isFirstPlayer && (
+            <button
+              onClick={handleStartSession}
+              disabled={startingSession}
+              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium 
+                       transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed
+                       shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Play className="w-5 h-5" />
+              <span>{startingSession ? 'Starting...' : 'Start Game'}</span>
+            </button>
+          )}
 
           <div className="flex space-x-2">
             {['all', 'solved', 'unsolved'].map(f => (
@@ -204,7 +332,7 @@ const Problems = () => {
       </div>
 
       {/* Waiting Screen */}
-      {!gameStatus.gameReady && (
+      {!gameStatus.sessionStarted && !gameStatus.gameReady && (
         <div className="card bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800">
           <div className="flex items-center space-x-4 p-6">
             <div className="flex-shrink-0">
@@ -215,7 +343,7 @@ const Problems = () => {
                 Waiting for Players to Join
               </h3>
               <p className="text-yellow-800 dark:text-yellow-200 mb-2">
-                A minimum of <strong>{gameStatus.minimumPlayers} players</strong> must join before you can start solving challenges.
+                A minimum of <strong>{gameStatus.minimumPlayers} players</strong> must join before the first player can start the session.
               </p>
               <div className="flex items-center space-x-2 mt-3">
                 <div className="flex-1 bg-yellow-200 dark:bg-yellow-800 rounded-full h-4 overflow-hidden">
@@ -231,7 +359,28 @@ const Problems = () => {
               <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
                 {gameStatus.playersNeeded > 0 
                   ? `${gameStatus.playersNeeded} more player${gameStatus.playersNeeded > 1 ? 's' : ''} needed`
-                  : 'Almost ready!'}
+                  : 'Ready! Waiting for first player to start the session...'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Ready - Waiting to Start */}
+      {gameStatus.gameReady && !gameStatus.sessionStarted && (
+        <div className="card bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800">
+          <div className="flex items-center space-x-4 p-6">
+            <div className="flex-shrink-0">
+              <Users className="w-12 h-12 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-green-900 dark:text-green-100 mb-2">
+                Ready to Start!
+              </h3>
+              <p className="text-green-800 dark:text-green-200">
+                {isFirstPlayer 
+                  ? '👑 You are the first player! Click the "Start Game" button above to begin the 10-minute session.'
+                  : 'Waiting for the first player to start the 10-minute game session...'}
               </p>
             </div>
           </div>

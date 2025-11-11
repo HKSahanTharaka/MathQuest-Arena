@@ -9,7 +9,7 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 - 🌓 **Dark/Light Theme** - Toggle with persistent preference
 - 📊 **Interactive Dashboard** - Real-time stats with charts and live updates
 - 🧮 **Problem Interface** - Browse, filter, and submit math solutions
-- 🎯 **Minimum Players Requirement** - Game starts only when 5+ players join
+- 🎯 **Minimum Players Requirement** - Game starts only when 3+ players join
 - 🏆 **Live Leaderboard** - Global rankings with real-time updates
 - 👤 **User Profiles** - Complete stats, achievements, and activity history
 - 💬 **Live Chat** - Real-time messaging (available only before game starts)
@@ -60,7 +60,7 @@ This automatically:
 
 **Then open:** http://localhost:3000
 
-**Login:** Enter any unique username (minimum 5 players required to start)
+**Login:** Enter any unique username (minimum 3 players required to start)
 
 ### Option 2: Backend Only (Console Client)
 
@@ -118,9 +118,9 @@ npm run dev
 
 1. **Open Browser:** http://localhost:3000
 2. **Login:** Enter a unique username (duplicate usernames are not allowed)
-3. **Wait for Players:** Minimum 5 players must join before challenges can be started
+3. **Wait for Players:** Minimum 3 players must join before challenges can be started
 4. **Dashboard:** View your stats, score history, and server status (updates in real-time)
-5. **Problems:** Browse math problems, submit answers (enabled when 5+ players join)
+5. **Problems:** Browse math problems, submit answers (enabled when 3+ players join)
 6. **Leaderboard:** See global rankings with live updates
 7. **Profile:** View your complete stats, achievements, and activity history
 8. **Chat:** Message other players in real-time (only available while waiting for players)
@@ -144,7 +144,7 @@ q, quit             - Exit
 ## 🎯 Game Rules & Mechanics
 
 ### Player Requirements
-- **Minimum Players:** 5 players must join before challenges can be started
+- **Minimum Players:** 3 players must join before challenges can be started
 - **Username Uniqueness:** Each username must be unique (case-insensitive matching)
 - **Session Management:** Players can disconnect and reconnect with the same username
 
@@ -152,9 +152,9 @@ q, quit             - Exit
 1. **Lobby Phase:** Players join and wait for minimum player count
    - Chat is available during this phase
    - Players can view dashboard and leaderboard
-   - Challenges are disabled until 5+ players join
+   - Challenges are disabled until 3+ players join
    
-2. **Active Game Phase:** Once 5+ players have joined
+2. **Active Game Phase:** Once 3+ players have joined
    - Challenges become available for submission
    - Chat is disabled to focus on problem-solving
    - Real-time leaderboard updates
@@ -439,7 +439,7 @@ Remove-Item -Recurse target
 - Username comparison is case-insensitive (e.g., "Player1" and "player1" are the same)
 
 **"Game not ready" or challenges disabled**
-- Minimum 5 players must join before challenges can be started
+- Minimum 3 players must join before challenges can be started
 - Check the game status indicator on the Challenges page
 - Wait for more players to join, or start additional client sessions
 
@@ -556,7 +556,7 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 ## 🔄 Recent Updates
 
 ### Version 2.1 - Enhanced Game Features
-- ✅ **Minimum Players Requirement** - Game requires 5+ players before challenges can be started
+- ✅ **Minimum Players Requirement** - Game requires 3+ players before challenges can be started
 - ✅ **Real-time Updates** - Dashboard, leaderboard, and player stats update automatically via WebSocket
 - ✅ **Username Uniqueness** - Enforced unique usernames per session (case-insensitive)
 - ✅ **Chat Restrictions** - Chat only available while waiting for players (blocked after game starts)
@@ -598,11 +598,11 @@ MIT License - Educational Project
 
 **Then open:** http://localhost:3000
 
-**Login:** Enter a unique username (minimum 5 players required to start challenges)
+**Login:** Enter a unique username (minimum 3 players required to start challenges)
 
 **Note:** 
 - Usernames must be unique (case-insensitive)
-- Minimum 5 players must join before challenges can be started
+- Minimum 3 players must join before challenges can be started
 - Chat is only available while waiting for players
 - All stats and leaderboards update in real-time
 

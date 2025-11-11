@@ -39,6 +39,7 @@ public class RestApiServer {
         server.createContext("/api/auth/register", this::handleRegister);
         server.createContext("/api/problems", this::handleChallenges);
         server.createContext("/api/problems/submit", this::handleSubmitFlag);
+        server.createContext("/api/session/start", this::handleStartSession);
         server.createContext("/api/leaderboard", this::handleLeaderboard);
         server.createContext("/api/stats", this::handleStats);
         server.createContext("/api/achievements", this::handleAchievements);
@@ -96,6 +97,7 @@ public class RestApiServer {
             response.put("token", token);
             response.put("playerId", playerId);
             response.put("username", username);
+            response.put("isFirstPlayer", playerId.equals(gameData.getFirstPlayerId()));
             
             sendJson(exchange, 200, response);
         } catch (Exception e) {
@@ -223,6 +225,16 @@ public class RestApiServer {
                 return;
             }
             
+            // Check if session is started
+            if (!gameData.isSessionStarted()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("correct", false);
+                response.put("message", "Session has not started yet. Waiting for first player to start the game.");
+                response.put("sessionStarted", false);
+                sendJson(exchange, 200, response);
+                return;
+            }
+            
             if (gameData.hasPlayerSolved(playerId, challengeId)) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("correct", false);
@@ -331,6 +343,50 @@ public class RestApiServer {
         
         Map<String, Object> gameStatus = gameData.getGameStatus();
         sendJson(exchange, 200, gameStatus);
+    }
+    
+    private void handleStartSession(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            sendError(exchange, 405, "Method not allowed");
+            return;
+        }
+        
+        addCorsHeaders(exchange);
+        
+        try {
+            String playerId = getPlayerIdFromRequest(exchange);
+            
+            if (playerId == null || playerId.isEmpty()) {
+                sendError(exchange, 401, "Player not authenticated");
+                return;
+            }
+            
+            boolean started = gameData.startSession(playerId);
+            
+            Map<String, Object> response = new HashMap<>();
+            if (started) {
+                response.put("success", true);
+                response.put("message", "Game session started!");
+                response.put("sessionStarted", true);
+                response.put("sessionStartTime", gameData.getSessionStartTime());
+                response.put("sessionEndTime", gameData.getSessionEndTime());
+                response.put("duration", 10 * 60 * 1000); // 10 minutes in ms
+                sendJson(exchange, 200, response);
+            } else {
+                response.put("success", false);
+                if (gameData.isSessionStarted()) {
+                    response.put("message", "Session already started");
+                } else if (!playerId.equals(gameData.getFirstPlayerId())) {
+                    response.put("message", "Only the first player can start the session");
+                } else {
+                    response.put("message", "Not enough players to start");
+                }
+                sendJson(exchange, 200, response);
+            }
+        } catch (Exception e) {
+            System.err.println("Error starting session: " + e.getMessage());
+            sendError(exchange, 500, "Internal server error");
+        }
     }
     
     private String getPlayerIdFromRequest(HttpExchange exchange) {

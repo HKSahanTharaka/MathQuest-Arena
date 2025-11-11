@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }) => {
       const userData = {
         id: response.playerId,
         username: response.username,
-        token: response.token
+        token: response.token,
+        isFirstPlayer: response.isFirstPlayer || false
       };
       
       localStorage.setItem('token', response.token);

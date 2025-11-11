@@ -8,7 +8,8 @@ import java.util.concurrent.*;
 
 public class GameDataManager {
     private static GameDataManager instance;
-    private static final int MINIMUM_PLAYERS = 5;
+    private static final int MINIMUM_PLAYERS = 3;
+    private static final long SESSION_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
     
     private Map<String, PlayerData> players;
     private Map<String, Set<String>> solvedChallenges;
@@ -18,6 +19,11 @@ public class GameDataManager {
     private Map<String, String> activeUsernames; // Track active usernames (username -> playerId)
     private long serverStartTime;
     private volatile boolean gameReady;
+    private String firstPlayerId; // Track first player who joined
+    private volatile boolean sessionStarted;
+    private long sessionStartTime;
+    private long sessionEndTime;
+    private ScheduledExecutorService sessionTimer;
     
     private GameDataManager() {
         this.players = new ConcurrentHashMap<>();
@@ -28,6 +34,11 @@ public class GameDataManager {
         this.activeUsernames = new ConcurrentHashMap<>();
         this.serverStartTime = System.currentTimeMillis();
         this.gameReady = false;
+        this.firstPlayerId = null;
+        this.sessionStarted = false;
+        this.sessionStartTime = 0;
+        this.sessionEndTime = 0;
+        this.sessionTimer = Executors.newScheduledThreadPool(1);
     }
     
     public static synchronized GameDataManager getInstance() {
@@ -97,6 +108,12 @@ public class GameDataManager {
         // Add to active players and active usernames
         activePlayerIds.add(playerId);
         activeUsernames.put(normalizedUsername, playerId);
+        
+        // Track first player
+        if (firstPlayerId == null) {
+            firstPlayerId = playerId;
+            System.out.println("👑 First player set: " + username + " (ID: " + playerId + ")");
+        }
         
         // Check if game is ready (minimum players reached)
         updateGameReadyStatus();
@@ -189,10 +206,144 @@ public class GameDataManager {
         return MINIMUM_PLAYERS;
     }
     
+    public String getFirstPlayerId() {
+        return firstPlayerId;
+    }
+    
+    public boolean isSessionStarted() {
+        return sessionStarted;
+    }
+    
+    public long getSessionStartTime() {
+        return sessionStartTime;
+    }
+    
+    public long getSessionEndTime() {
+        return sessionEndTime;
+    }
+    
+    public long getRemainingTime() {
+        if (!sessionStarted) return 0;
+        long remaining = sessionEndTime - System.currentTimeMillis();
+        return Math.max(0, remaining);
+    }
+    
+    /**
+     * Start the game session (can only be called by first player when minimum players reached)
+     */
+    public boolean startSession(String playerId) {
+        if (sessionStarted) {
+            System.out.println("⚠️  Session already started");
+            return false;
+        }
+        
+        if (!playerId.equals(firstPlayerId)) {
+            System.out.println("⚠️  Only first player can start the session");
+            return false;
+        }
+        
+        if (activePlayerIds.size() < MINIMUM_PLAYERS) {
+            System.out.println("⚠️  Cannot start session: Not enough players (" + activePlayerIds.size() + "/" + MINIMUM_PLAYERS + ")");
+            return false;
+        }
+        
+        sessionStarted = true;
+        sessionStartTime = System.currentTimeMillis();
+        sessionEndTime = sessionStartTime + SESSION_DURATION;
+        
+        System.out.println("🎮 Game session started by " + getPlayer(playerId).username);
+        System.out.println("⏱️  Session duration: " + (SESSION_DURATION / 60000) + " minutes");
+        
+        // Schedule session end
+        sessionTimer.schedule(() -> {
+            endSession();
+        }, SESSION_DURATION, TimeUnit.MILLISECONDS);
+        
+        // Broadcast session started event
+        broadcastSessionStarted();
+        
+        return true;
+    }
+    
+    /**
+     * End the game session
+     */
+    private void endSession() {
+        if (!sessionStarted) return;
+        
+        sessionStarted = false;
+        System.out.println("⏰ Game session ended!");
+        System.out.println("💬 Chat is now re-enabled");
+        
+        // Broadcast session ended event
+        broadcastSessionEnded();
+    }
+    
+    private void broadcastSessionStarted() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/session-started");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = String.format(
+                    "{\"sessionStarted\":true,\"startTime\":%d,\"endTime\":%d,\"duration\":%d}",
+                    sessionStartTime, sessionEndTime, SESSION_DURATION
+                );
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted session started event");
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
+    private void broadcastSessionEnded() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("http://localhost:8083/broadcast/session-ended");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(1000);
+                conn.setReadTimeout(1000);
+                
+                String json = "{\"sessionStarted\":false,\"sessionEnded\":true}";
+                
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    System.out.println("📡 Broadcasted session ended event");
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                // WebSocket server might not be running, ignore silently
+            }
+        }).start();
+    }
+    
     public boolean submitFlag(String playerId, String challengeId, int points) {
-        // Check if game is ready (minimum players joined)
-        if (!gameReady) {
-            System.out.println("⏸️  Cannot submit flag: Waiting for minimum players (" + activePlayerIds.size() + "/" + MINIMUM_PLAYERS + ")");
+        // Check if session is started
+        if (!sessionStarted) {
+            System.out.println("⏸️  Cannot submit flag: Session not started yet");
             return false;
         }
         
@@ -464,6 +615,10 @@ public class GameDataManager {
         stats.put("gameReady", gameReady);
         stats.put("minimumPlayers", MINIMUM_PLAYERS);
         stats.put("currentPlayerCount", activeCount);
+        stats.put("sessionStarted", sessionStarted);
+        stats.put("sessionStartTime", sessionStartTime);
+        stats.put("sessionEndTime", sessionEndTime);
+        stats.put("remainingTime", getRemainingTime());
         
         return stats;
     }
@@ -474,6 +629,11 @@ public class GameDataManager {
         status.put("currentPlayerCount", activePlayerIds.size());
         status.put("minimumPlayers", MINIMUM_PLAYERS);
         status.put("playersNeeded", Math.max(0, MINIMUM_PLAYERS - activePlayerIds.size()));
+        status.put("sessionStarted", sessionStarted);
+        status.put("sessionStartTime", sessionStartTime);
+        status.put("sessionEndTime", sessionEndTime);
+        status.put("remainingTime", getRemainingTime());
+        status.put("firstPlayerId", firstPlayerId);
         return status;
     }
     
@@ -521,8 +681,8 @@ public class GameDataManager {
                 conn.setReadTimeout(1000);
                 
                 String json = String.format(
-                    "{\"gameReady\":%b,\"currentCount\":%d,\"minimumPlayers\":%d}",
-                    gameReady, currentCount, minimumPlayers
+                    "{\"gameReady\":%b,\"currentCount\":%d,\"minimumPlayers\":%d,\"firstPlayerId\":\"%s\"}",
+                    gameReady, currentCount, minimumPlayers, firstPlayerId != null ? firstPlayerId : ""
                 );
                 
                 try (OutputStream os = conn.getOutputStream()) {

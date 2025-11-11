@@ -8,4 +8,3 @@
       GET    /registry/stats      - Registry statistics
 ? Service registered: Service Registry at http://localhost:8084
 ? Self-heartbeat started for Service Registry
-^C

@@ -5,69 +5,148 @@
 ? All servers ready!
 ? REST API: http://localhost:8080
 ? SSL Auth: https://localhost:8443
-? Fetching stats for player: player-hhh-1762806991323
-??  Player not found with exact ID: player-hhh-1762806991323
-??  Returning default stats for playerId: player-hhh-1762806991323
+? Fetching stats for player: player-Sahan-1762859573370
+??  Player not found with exact ID: player-Sahan-1762859573370
+??  Returning default stats for playerId: player-Sahan-1762859573370
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-hhh-1762806991323
-??  Player not found with exact ID: player-hhh-1762806991323
-??  Returning default stats for playerId: player-hhh-1762806991323
+? Fetching stats for player: player-Sahan-1762859573370
+??  Player not found with exact ID: player-Sahan-1762859573370
+??  Returning default stats for playerId: player-Sahan-1762859573370
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
 ? Broadcasted server stats update
-? Broadcasted game status: 0/5
-? Registered player: bonk (ID: player-bonk-1762807969398)
+? Broadcasted game status: 0/3
+? Registered player: 1qa (ID: player-1qa-1762860543295)
+? First player set: 1qa (ID: player-1qa-1762860543295)
+? Broadcasted game status: 1/3
 ? Broadcasted server stats update
-? Broadcasted game status: 1/5
-? Broadcasted player join: bonk
 ? Broadcasted server stats update
-? Fetching stats for player: player-bonk-1762807969398
-? Stats for bonk: Score=0, Solved=0, Rank=1
+? Broadcasted player join: 1qa
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-bonk-1762807969398
-? Stats for bonk: Score=0, Solved=0, Rank=1
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-uuu-1762807025205
-??  Player not found with exact ID: player-uuu-1762807025205
-??  Returning default stats for playerId: player-uuu-1762807025205
+? Broadcasted game status: 1/3
+? Broadcasted server stats update
+? Broadcasted game status: 1/3
+? Broadcasted server stats update
+? Fetching stats for player: player-Huyon-1762859793862
+??  Player not found with exact ID: player-Huyon-1762859793862
+??  Returning default stats for playerId: player-Huyon-1762859793862
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
-? Fetching stats for player: player-uuu-1762807025205
-??  Player not found with exact ID: player-uuu-1762807025205
-??  Returning default stats for playerId: player-uuu-1762807025205
+? Fetching stats for player: player-Huyon-1762859793862
+??  Player not found with exact ID: player-Huyon-1762859793862
+??  Returning default stats for playerId: player-Huyon-1762859793862
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
-? Registered player: bnn (ID: player-bnn-1762808004174)
-? Broadcasted player join: bnn
+? Broadcasted game status: 1/3
 ? Broadcasted server stats update
+? Registered player: swd (ID: player-swd-1762860563713)
 ? Broadcasted server stats update
-? Broadcasted game status: 2/5
-? Fetching stats for player: player-bnn-1762808004174
-? Stats for bnn: Score=0, Solved=0, Rank=1
+? Broadcasted game status: 2/3
+? Broadcasted player join: swd
+? Broadcasted server stats update
+? Fetching stats for player: player-swd-1762860563713
+? Stats for swd: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-bnn-1762808004174
-? Stats for bnn: Score=0, Solved=0, Rank=1
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-bnn-1762808004174
-? Stats for bnn: Score=0, Solved=0, Rank=1
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-bnn-1762808004174
-? Stats for bnn: Score=0, Solved=0, Rank=1
+? Fetching stats for player: player-swd-1762860563713
+? Stats for swd: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
 ? Broadcasted server stats update
-? Broadcasted game status: 1/5
-? Registered player: iuyiy (ID: player-iuyiy-1762808014048)
-? Broadcasted game status: 2/5
+? Broadcasted game status: 2/3
+? Registered player: vfd (ID: player-vfd-1762860575008)
+? Game is now ready! Minimum players (3) reached!
+? Broadcasted player join: vfd
 ? Broadcasted server stats update
-? Broadcasted player join: iuyiy
+? Broadcasted game status: 3/3
 ? Broadcasted server stats update
-? Fetching stats for player: player-iuyiy-1762808014048
-? Stats for iuyiy: Score=0, Solved=0, Rank=1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-iuyiy-1762808014048
-? Stats for iuyiy: Score=0, Solved=0, Rank=1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-iuyiy-1762808014048
-? Stats for iuyiy: Score=0, Solved=0, Rank=1
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Fetching stats for player: player-iuyiy-1762808014048
-? Stats for iuyiy: Score=0, Solved=0, Rank=1
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-^C
+? Game session started by 1qa
+??  Session duration: 10 minutes
+? Broadcasted session started event
+? 1qa solved problem 1 (+100 points)
+? Broadcasted score update for 1qa
+? Broadcasted activity: 1qa solved 1
+? Broadcasted leaderboard update
+? Broadcasted challenge solved: 1qa solved 1
+? vfd solved problem 2 (+200 points)
+? Broadcasted challenge solved: vfd solved 2
+? Broadcasted score update for vfd
+? Broadcasted activity: vfd solved 2
+? Broadcasted leaderboard update
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? Fetching stats for player: player-1qa-1762860543295
+? Stats for 1qa: Score=100, Solved=1, Rank=2
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
+? vfd solved problem 1 (+100 points)
+? Broadcasted challenge solved: vfd solved 1
+? Broadcasted leaderboard update
+? Broadcasted activity: vfd solved 1
+? Broadcasted score update for vfd
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1
+? Fetching stats for player: player-vfd-1762860575008
+? Stats for vfd: Score=300, Solved=2, Rank=1
+? Stats retrieved - Score: 300, Challenges: 2, Rank: 1

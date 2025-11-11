@@ -78,6 +78,8 @@ public class WebSocketGameServer {
         httpServer.createContext("/broadcast/leaderboard-update", this::handleLeaderboardUpdateBroadcast);
         httpServer.createContext("/broadcast/server-stats", this::handleServerStatsBroadcast);
         httpServer.createContext("/broadcast/challenge-solved", this::handleChallengeSolvedBroadcast);
+        httpServer.createContext("/broadcast/session-started", this::handleSessionStartedBroadcast);
+        httpServer.createContext("/broadcast/session-ended", this::handleSessionEndedBroadcast);
         
         httpServer.start();
     }
@@ -229,14 +231,14 @@ public class WebSocketGameServer {
         System.out.println("📨 Received: " + message);
         
         if (message.contains("\"type\":\"chat\"")) {
-            // Check if game is ready - if so, block chat
-            if (gameData.isGameReady()) {
-                // Game has started, chat is disabled
-                String errorMessage = "{\"type\":\"chat_error\",\"payload\":{\"message\":\"Chat is disabled after the game has started. Chat is only available while waiting for players.\"}}";
+            // Check if session is started - if so, block chat
+            if (gameData.isSessionStarted()) {
+                // Session has started, chat is disabled
+                String errorMessage = "{\"type\":\"chat_error\",\"payload\":{\"message\":\"Chat is disabled during active game session. Chat will be available again after the session ends.\"}}";
                 sendMessage(channel, errorMessage);
-                System.out.println("🚫 Chat blocked - game has started");
+                System.out.println("🚫 Chat blocked - session in progress");
             } else {
-                // Game not ready yet, allow chat
+                // Session not started yet, allow chat
                 broadcast(message, null);
             }
         } else if (message.contains("\"type\":\"challenge_solved\"")) {
@@ -251,12 +253,17 @@ public class WebSocketGameServer {
     }
     
     // Method to broadcast game status updates
-    public void broadcastGameStatus(boolean gameReady, int currentCount, int minimumPlayers) {
+    public void broadcastGameStatus(boolean gameReady, int currentCount, int minimumPlayers, String firstPlayerId) {
         String statusMessage = String.format(
-            "{\"type\":\"game_status\",\"payload\":{\"gameReady\":%b,\"currentPlayerCount\":%d,\"minimumPlayers\":%d,\"playersNeeded\":%d}}",
-            gameReady, currentCount, minimumPlayers, Math.max(0, minimumPlayers - currentCount)
+            "{\"type\":\"game_status\",\"payload\":{\"gameReady\":%b,\"currentPlayerCount\":%d,\"minimumPlayers\":%d,\"playersNeeded\":%d,\"firstPlayerId\":\"%s\"}}",
+            gameReady, currentCount, minimumPlayers, Math.max(0, minimumPlayers - currentCount), firstPlayerId != null ? firstPlayerId : ""
         );
         broadcast(statusMessage, null);
+    }
+    
+    // Overload for backward compatibility
+    public void broadcastGameStatus(boolean gameReady, int currentCount, int minimumPlayers) {
+        broadcastGameStatus(gameReady, currentCount, minimumPlayers, "");
     }
     
     // Method to broadcast player join events
@@ -288,12 +295,12 @@ public class WebSocketGameServer {
         
         try {
             String body = readRequestBody(exchange);
-            // Parse JSON: {"username":"...","currentCount":1,"minimumPlayers":5}
+            // Parse JSON: {"username":"...","currentCount":1,"minimumPlayers":3}
             Map<String, String> data = parseJson(body);
             
             String username = data.get("username");
             int currentCount = Integer.parseInt(data.getOrDefault("currentCount", "0"));
-            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "5"));
+            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "3"));
             
             broadcastPlayerJoin(username, currentCount, minimumPlayers);
             sendHttpResponse(exchange, 200, "OK");
@@ -311,14 +318,15 @@ public class WebSocketGameServer {
         
         try {
             String body = readRequestBody(exchange);
-            // Parse JSON: {"gameReady":false,"currentCount":1,"minimumPlayers":5}
+            // Parse JSON: {"gameReady":false,"currentCount":1,"minimumPlayers":3,"firstPlayerId":"abc123"}
             Map<String, String> data = parseJson(body);
             
             boolean gameReady = Boolean.parseBoolean(data.getOrDefault("gameReady", "false"));
             int currentCount = Integer.parseInt(data.getOrDefault("currentCount", "0"));
-            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "5"));
+            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "3"));
+            String firstPlayerId = data.getOrDefault("firstPlayerId", "");
             
-            broadcastGameStatus(gameReady, currentCount, minimumPlayers);
+            broadcastGameStatus(gameReady, currentCount, minimumPlayers, firstPlayerId);
             sendHttpResponse(exchange, 200, "OK");
         } catch (Exception e) {
             System.err.println("Error handling game status broadcast: " + e.getMessage());
@@ -451,7 +459,7 @@ public class WebSocketGameServer {
             int totalChallenges = Integer.parseInt(data.getOrDefault("totalChallenges", "0"));
             long uptime = Long.parseLong(data.getOrDefault("uptime", "0"));
             boolean gameReady = Boolean.parseBoolean(data.getOrDefault("gameReady", "false"));
-            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "5"));
+            int minimumPlayers = Integer.parseInt(data.getOrDefault("minimumPlayers", "3"));
             int currentPlayerCount = Integer.parseInt(data.getOrDefault("currentPlayerCount", "0"));
             
             String message = String.format(
@@ -490,6 +498,48 @@ public class WebSocketGameServer {
             sendHttpResponse(exchange, 200, "OK");
         } catch (Exception e) {
             System.err.println("Error handling challenge solved broadcast: " + e.getMessage());
+            sendHttpResponse(exchange, 500, "Internal server error");
+        }
+    }
+    
+    private void handleSessionStartedBroadcast(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            sendHttpResponse(exchange, 405, "Method not allowed");
+            return;
+        }
+        
+        try {
+            String body = readRequestBody(exchange);
+            Map<String, String> data = parseJson(body);
+            
+            long startTime = Long.parseLong(data.getOrDefault("startTime", "0"));
+            long endTime = Long.parseLong(data.getOrDefault("endTime", "0"));
+            long duration = Long.parseLong(data.getOrDefault("duration", "0"));
+            
+            String message = String.format(
+                "{\"type\":\"session_started\",\"payload\":{\"sessionStarted\":true,\"startTime\":%d,\"endTime\":%d,\"duration\":%d}}",
+                startTime, endTime, duration
+            );
+            broadcast(message, null);
+            sendHttpResponse(exchange, 200, "OK");
+        } catch (Exception e) {
+            System.err.println("Error handling session started broadcast: " + e.getMessage());
+            sendHttpResponse(exchange, 500, "Internal server error");
+        }
+    }
+    
+    private void handleSessionEndedBroadcast(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            sendHttpResponse(exchange, 405, "Method not allowed");
+            return;
+        }
+        
+        try {
+            String message = "{\"type\":\"session_ended\",\"payload\":{\"sessionStarted\":false,\"sessionEnded\":true}}";
+            broadcast(message, null);
+            sendHttpResponse(exchange, 200, "OK");
+        } catch (Exception e) {
+            System.err.println("Error handling session ended broadcast: " + e.getMessage());
             sendHttpResponse(exchange, 500, "Internal server error");
         }
     }

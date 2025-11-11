@@ -95,6 +95,12 @@ class ApiService {
     return this.request('/game/status');
   }
 
+  async startSession() {
+    return this.request('/session/start', {
+      method: 'POST',
+    });
+  }
+
   async getRegisteredServices() {
     try {
       const response = await fetch('http://localhost:8084/registry/services');

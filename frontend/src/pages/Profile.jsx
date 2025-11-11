@@ -238,19 +238,19 @@ const Profile = () => {
   ];
 
   const achievementIcons = {
-    'First Solver': '🎯',
-    'Math Enthusiast': '📚',
-    'Math Wizard': '🧙',
-    'Point Collector': '💰',
-    'First Blood': '🩸',
-    'Speedrunner': '⚡',
-    'Veteran': '🎖️',
-    'Perfectionist': '💯',
-    'Night Owl': '🦉',
-    'Early Bird': '🐦',
-    'Champion': '👑',
-    'Top Mathematician': '🏆',
-    'Elite Solver': '⭐'
+    'First Solver': '',
+    'Math Enthusiast': '',
+    'Math Wizard': '',
+    'Point Collector': '',
+    'First Blood': '',
+    'Speedrunner': '',
+    'Veteran': '',
+    'Perfectionist': '',
+    'Night Owl': '',
+    'Early Bird': '',
+    'Champion': '',
+    'Top Mathematician': '',
+    'Elite Solver': ''
   };
 
 

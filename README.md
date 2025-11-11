@@ -202,48 +202,46 @@ q, quit             - Exit
          │                  │
     HTTP │                  │ WebSocket
          ▼                  ▼
-┌─────────────────────────────────────┐
-│  Backend Servers (Java)             │
-│  ┌──────────────────────────────┐   │
-│  │  1. TCP Server (8080)        │   │ Member 1 Sahan
-│  │  2. NIO Manager (8081)       │   │ Member 2 Sachith
-│  │  3. UDP Server (9000)        │   │ Member 3 Nithakshi
-│  │  4. Service discovery/registry and rmi statistics service           │   │ Member 4 chiran
-│  │  
-│  │  5. WebSocket Bridge (8082)  │   │ Member 5 Thilina
-│  └──────────────────────────────┘   │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  Backend Servers (Java)                         │
+│  ┌─────────────────────────────────────────┐   │
+│  │  1. TCP Server (8080)     [Member 1: Sahan]       │
+│  │  2. NIO Manager (8081)    [Member 2: Sachith]     │
+│  │  3. UDP Server (9000)     [Member 3: Nithakshi]   │
+│  │  4. Service Discovery/Registry & RMI Statistics   │
+│  │     (8084 & 1099)         [Member 4: Chiran]      │
+│  │  5. WebSocket Bridge (8082)   [Member 5: Thilina] │
+│  └─────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
 ```
 
 ### Backend Components
 
-1. **TCP Game Server** (Member 1)
+1. **TCP Game Server** (Port 8080 - Member 1: Sahan)
    - Multi-threaded client handling
    - Thread pool management (50 threads)
    - Core game logic and session management
 
-2. **NIO State Manager** (Member 2)
+2. **NIO State Manager** (Port 8081 - Member 2: Sachith)
    - Non-blocking I/O with Selector
    - Efficient state broadcasting
    - Scalable to 1000+ concurrent connections
 
-3. **UDP Event System** (Member 3)
+3. **UDP Event System** (Port 9000 - Member 3: Nithakshi)
    - Real-time position updates
    - Multicast messaging for groups
    - Low-latency communication
 
-4. **Service Discovery/Registry** (Member 4)
+4. **Service Discovery/Registry & RMI Statistics** (Ports 8084 & 1099 - Member 4: Chiran)
    - Service registration and deregistration
    - Health monitoring with heartbeats
    - DNS-like service name resolution
    - Load information tracking
-
-5. **RMI Statistics Service** (Member 5)
    - Remote leaderboard access
    - Player statistics tracking
    - Achievement system
 
-6. **WebSocket Bridge** (New)
+5. **WebSocket Bridge** (Port 8082 - Member 5: Thilina)
    - Real-time bidirectional communication
    - Event broadcasting to all clients
    - Chat, notifications, live updates
@@ -554,8 +552,8 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 1. **Sahan** - TCP Server Core with multi-threaded client handling (Member 1)
 2. **Sachith** - NIO State Manager with non-blocking I/O and state broadcasting (Member 2)
 3. **Nithakshi** - UDP Event System with real-time position updates and multicast (Member 3)
-4. **Chiran** - Service Discovery/Registry with health monitoring and DNS-like resolution (Member 4)
-5. **Thilina** - RMI Statistics Service with remote leaderboard and achievements (Member 5)
+4. **Chiran** - Service Discovery/Registry & RMI Statistics Service (Member 4)
+5. **Thilina** - WebSocket Bridge with real-time communication (Member 5)
 
 ## 📚 Additional Resources
 

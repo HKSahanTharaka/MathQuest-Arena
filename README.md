@@ -160,10 +160,13 @@ q, quit             - Exit
    - Real-time leaderboard updates
    - Score tracking and achievements
 
-### Scoring System
+### Scoring & Ranking System
 - Points are awarded for correct challenge submissions
-- Leaderboard ranks players by total score
-- Achievements unlock based on performance
+- **Leaderboard Ranking:** Players are ranked by:
+  - **Primary:** Total score (higher is better)
+  - **Tiebreaker:** Time to reach that score (earlier is better)
+  - Players who reach the same score first get better ranking
+- Achievements unlock based on performance (no emojis)
 - Weekly activity is tracked and displayed
 
 ### Real-time Features
@@ -554,6 +557,13 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 - **WebSocket Protocol:** https://tools.ietf.org/html/rfc6455
 
 ## 🔄 Recent Updates
+
+### Version 2.2 - Ranking & Achievement Improvements
+- ✅ **Fair Ranking System** - Leaderboard now uses score (primary) + time-to-score (tiebreaker)
+  - Players who reach the same score earlier get better ranking
+  - Fixes issue where later players incorrectly ranked higher
+- ✅ **Clean Achievements** - Removed emojis from RMI achievement system for consistency
+- ✅ **JSON Serialization Fix** - Corrected achievement array formatting in REST API
 
 ### Version 2.1 - Enhanced Game Features
 - ✅ **Minimum Players Requirement** - Game requires 3+ players before challenges can be started

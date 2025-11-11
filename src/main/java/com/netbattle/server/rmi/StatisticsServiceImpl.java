@@ -157,25 +157,25 @@ public class StatisticsServiceImpl extends UnicastRemoteObject
         
         // First Blood: First to solve a challenge
         if (stats.getChallengesSolved() > 0) {
-            achievements.add("🩸 First Blood - Solved your first challenge!");
+            achievements.add("First Blood - Solved your first challenge!");
         }
         
         // Speedrunner: Solve a challenge in under 1 minute
         if (stats.getSolvedChallenges().stream()
                 .anyMatch(id -> stats.getSolveTimeMap().get(id) < SPEEDRUNNER_TIME)) {
-            achievements.add("⚡ Speedrunner - Solved a challenge in under 1 minute!");
+            achievements.add("Speedrunner - Solved a challenge in under 1 minute!");
         }
         
         // Veteran: Solve 10+ challenges
         if (stats.getChallengesSolved() >= VETERAN_CHALLENGES) {
-            achievements.add("🎖️ Veteran - Solved 10+ challenges!");
+            achievements.add("Veteran - Solved 10+ challenges!");
         }
         
         // Point milestones
         int score = stats.getTotalScore();
-        if (score >= 1000) achievements.add("⭐ Rising Star - 1000+ points!");
-        if (score >= 5000) achievements.add("🌟 CTF Master - 5000+ points!");
-        if (score >= 10000) achievements.add("👑 Legend - 10000+ points!");
+        if (score >= 1000) achievements.add("Rising Star - 1000+ points!");
+        if (score >= 5000) achievements.add("CTF Master - 5000+ points!");
+        if (score >= 10000) achievements.add("Legend - 10000+ points!");
         
         return achievements;
     }

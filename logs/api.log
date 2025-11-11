@@ -5,92 +5,95 @@
 ? All servers ready!
 ? REST API: http://localhost:8080
 ? SSL Auth: https://localhost:8443
-? Registered player: Sahan (ID: player-Sahan-1762864635233)
-? First player set: Sahan (ID: player-Sahan-1762864635233)
-? Fetching stats for player: player-Sahan-1762864635233
+? Fetching stats for player: player-Ewww-1762865822184
+??  Player not found with exact ID: player-Ewww-1762865822184
+??  Returning default stats for playerId: player-Ewww-1762865822184
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
+? Fetching stats for player: player-Ewww-1762865822184
+??  Player not found with exact ID: player-Ewww-1762865822184
+??  Returning default stats for playerId: player-Ewww-1762865822184
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
 ? Broadcasted server stats update
-? Broadcasted player join: Sahan
+? Broadcasted game status: 0/3
+? Registered player: Awww (ID: player-Awww-1762866346156)
+? First player set: Awww (ID: player-Awww-1762866346156)
+? Broadcasted server stats update
 ? Broadcasted game status: 1/3
-? Stats for Sahan: Score=0, Solved=0, Rank=1
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
+? Broadcasted player join: Awww
 ? Broadcasted server stats update
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=0, Solved=0, Rank=1
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=0, Solved=0, Rank=1
 ? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
-? Registered player: ER (ID: player-ER-1762864640936)
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=0, Solved=0, Rank=1
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 1
+? Fetching stats for player: player-EEEEEyoooow-1762865840193
+??  Player not found with exact ID: player-EEEEEyoooow-1762865840193
+??  Returning default stats for playerId: player-EEEEEyoooow-1762865840193
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
+? Fetching stats for player: player-EEEEEyoooow-1762865840193
+??  Player not found with exact ID: player-EEEEEyoooow-1762865840193
+??  Returning default stats for playerId: player-EEEEEyoooow-1762865840193
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
+? Broadcasted server stats update
+? Broadcasted game status: 1/3
+? Registered player: qqwwwe (ID: player-qqwwwe-1762866369444)
 ? Broadcasted game status: 2/3
-? Broadcasted player join: ER
 ? Broadcasted server stats update
+? Broadcasted player join: qqwwwe
+? Fetching stats for player: player-qqwwwe-1762866369444
+? Stats for qqwwwe: Score=0, Solved=0, Rank=2
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
 ? Broadcasted server stats update
-? Registered player: EWSX (ID: player-EWSX-1762864647249)
+? Fetching stats for player: player-qqwwwe-1762866369444
+? Stats for qqwwwe: Score=0, Solved=0, Rank=2
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 2
+? Registered player: qqq22wsdd (ID: player-qqq22wsdd-1762866394556)
 ? Game is now ready! Minimum players (3) reached!
 ? Broadcasted server stats update
-? Broadcasted server stats update
 ? Broadcasted game status: 3/3
-? Broadcasted player join: EWSX
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=0, Solved=0, Rank=3
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 3
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=0, Solved=0, Rank=3
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 3
-? Registered player: QWER (ID: player-QWER-1762864654817)
-? Broadcasted game status: 4/3
+? Broadcasted player join: qqq22wsdd
 ? Broadcasted server stats update
-? Broadcasted player join: QWER
-? Broadcasted server stats update
-? Fetching stats for player: player-QWER-1762864654817
-? Stats for QWER: Score=0, Solved=0, Rank=4
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 4
-? Fetching stats for player: player-QWER-1762864654817
-? Stats for QWER: Score=0, Solved=0, Rank=4
-? Stats retrieved - Score: 0, Challenges: 0, Rank: 4
-? Game session started by Sahan
+? Fetching stats for player: player-qqq22wsdd-1762866394556
+? Stats for qqq22wsdd: Score=0, Solved=0, Rank=3
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 3
+? Fetching stats for player: player-qqq22wsdd-1762866394556
+? Stats for qqq22wsdd: Score=0, Solved=0, Rank=3
+? Stats retrieved - Score: 0, Challenges: 0, Rank: 3
+? Game session started by Awww
 ??  Session duration: 10 minutes
 ? Broadcasted session started event
-? Sahan solved problem 1 (+100 points)
-? Broadcasted score update for Sahan
-? Broadcasted activity: Sahan solved 1
+? Awww solved problem 1 (+100 points)
+? Broadcasted score update for Awww
+? Broadcasted activity: Awww solved 1
+? Broadcasted challenge solved: Awww solved 1
 ? Broadcasted leaderboard update
-? Broadcasted challenge solved: Sahan solved 1
-? EWSX solved problem 1 (+100 points)
-? Broadcasted activity: EWSX solved 1
-? Broadcasted challenge solved: EWSX solved 1
-? Broadcasted score update for EWSX
+? qqwwwe solved problem 1 (+100 points)
+? Broadcasted activity: qqwwwe solved 1
+? Broadcasted score update for qqwwwe
 ? Broadcasted leaderboard update
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=100, Solved=1, Rank=2
+? Broadcasted challenge solved: qqwwwe solved 1
+? Fetching stats for player: player-qqwwwe-1762866369444
+? Stats for qqwwwe: Score=100, Solved=1, Rank=2
 ? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=100, Solved=1, Rank=2
+? Fetching stats for player: player-qqwwwe-1762866369444
+? Stats for qqwwwe: Score=100, Solved=1, Rank=2
 ? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=100, Solved=1, Rank=2
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=100, Solved=1, Rank=1
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=100, Solved=1, Rank=1
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=100, Solved=1, Rank=1
+? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
+? Fetching stats for player: player-qqwwwe-1762866369444
+? Stats for qqwwwe: Score=100, Solved=1, Rank=2
 ? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
-? Fetching stats for player: player-EWSX-1762864647249
-? Stats for EWSX: Score=100, Solved=1, Rank=2
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 2
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=100, Solved=1, Rank=1
 ? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
-? Stats retrieved - Score: 100, Challenges: 1, Rank: 1
-? Fetching stats for player: player-Sahan-1762864635233
-? Stats for Sahan: Score=100, Solved=1, Rank=1
+? Fetching stats for player: player-Awww-1762866346156
+? Stats for Awww: Score=100, Solved=1, Rank=1
 ? Stats retrieved - Score: 100, Challenges: 1, Rank: 1

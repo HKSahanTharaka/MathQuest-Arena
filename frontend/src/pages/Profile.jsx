@@ -349,7 +349,7 @@ const Profile = () => {
                     className="p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all"
                   >
                     <div className="text-3xl mb-2 text-center">
-                      {achievementIcons[achievementName] || '🏆'}
+                      {achievementIcons[achievementName] || ''}
                     </div>
                     <h3 className="font-bold text-sm text-center text-gray-900 dark:text-gray-100">
                       {achievementName}

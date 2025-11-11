@@ -1,23 +1,8 @@
 ? WebSocket server started on port 8082
 ? HTTP API server started on port 8083
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:51875
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:51877
-? New WebSocket connection from: /127.0.0.1:51892
-? Received: ?
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:54795
+? New WebSocket connection from: /127.0.0.1:54812
+Error handling key: Connection reset
 ? Client disconnected
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:51921
-? Received: 
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:51940
-? Received: ?
-? Received: ?
-? Client disconnected
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:51961
-? New WebSocket connection from: /127.0.0.1:51962
-? Received: 
-? New WebSocket connection from: /127.0.0.1:51986
-? Client disconnected
-? Received: 
-? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:52008
-? Client disconnected
-? Client disconnected
-? Client disconnected
+? New WebSocket connection from: /127.0.0.1:54816
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:54830

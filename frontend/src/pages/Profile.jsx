@@ -68,7 +68,7 @@ const Profile = () => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const [playerStats, playerAchievements] = await Promise.all([
+        let [playerStats, playerAchievements] = await Promise.all([
           api.getPlayerStats(user.id),
           api.getAchievements(user.id)
         ]);

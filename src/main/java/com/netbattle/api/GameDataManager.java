@@ -451,7 +451,18 @@ public class GameDataManager {
         List<Map<String, Object>> leaderboard = new ArrayList<>();
         
         List<PlayerData> sortedPlayers = new ArrayList<>(players.values());
-        sortedPlayers.sort((p1, p2) -> Integer.compare(p2.totalScore, p1.totalScore));
+        // Sort by score (descending), then by time reached that score (ascending - earlier is better)
+        sortedPlayers.sort((p1, p2) -> {
+            // First, compare by score (higher is better)
+            int scoreCompare = Integer.compare(p2.totalScore, p1.totalScore);
+            if (scoreCompare != 0) {
+                return scoreCompare;
+            }
+            // If scores are equal, compare by when they reached that score (earlier is better)
+            long time1 = getTimeReachedScore(p1);
+            long time2 = getTimeReachedScore(p2);
+            return Long.compare(time1, time2);
+        });
         
         int rank = 1;
         for (PlayerData player : sortedPlayers) {
@@ -871,12 +882,43 @@ public class GameDataManager {
         return System.currentTimeMillis() - player.firstSeen;
     }
     
+    private long getTimeReachedScore(PlayerData player) {
+        if (player == null || player.scoreHistory.isEmpty()) {
+            return Long.MAX_VALUE; // Put players with no history at the end
+        }
+        
+        // Find the timestamp when the player reached their current total score
+        for (int i = player.scoreHistory.size() - 1; i >= 0; i--) {
+            ScoreEvent event = player.scoreHistory.get(i);
+            if (event.score == player.totalScore) {
+                return event.timestamp;
+            }
+        }
+        
+        // Fallback to the last score event timestamp
+        return player.scoreHistory.get(player.scoreHistory.size() - 1).timestamp;
+    }
+    
     private int calculatePlayerRank(String playerId) {
         PlayerData player = players.get(playerId);
         if (player == null) return players.size() + 1;
         
+        long playerScoreTime = getTimeReachedScore(player);
+        
+        // Count players who are ranked better than this player
         long betterPlayers = players.values().stream()
-            .filter(p -> p.totalScore > player.totalScore)
+            .filter(p -> {
+                // Player is better if they have higher score
+                if (p.totalScore > player.totalScore) {
+                    return true;
+                }
+                // If same score, player is better if they reached it earlier
+                if (p.totalScore == player.totalScore) {
+                    long otherPlayerScoreTime = getTimeReachedScore(p);
+                    return otherPlayerScoreTime < playerScoreTime;
+                }
+                return false;
+            })
             .count();
         
         return (int) betterPlayers + 1;

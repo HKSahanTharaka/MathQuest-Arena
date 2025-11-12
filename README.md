@@ -26,12 +26,12 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 - 🚀 **Vite HMR** - Lightning-fast development with hot module replacement
 
 ### Backend (Java)
-- 🔌 **TCP Game Server** - Multi-threaded client handling with 50-thread pool and core game logic
+- 🔌 **TCP Game Server** - Multi-threaded client handling with 50-thread pool, core game logic, internal HTTP API, and game state synchronization
 - ⚡ **NIO State Manager** - Non-blocking I/O with Selector, scalable to 1000+ connections
 - 📡 **UDP Event System** - Real-time position updates with multicast messaging capability
 - 🔍 **Service Discovery** - Complete service registry with health monitoring and DNS-like resolution
 - 📊 **RMI Statistics** - Remote leaderboard access and player statistics tracking
-- 🌐 **WebSocket Bridge** - Real-time bidirectional communication with internal HTTP API (port 8083)
+- 🌐 **WebSocket Bridge** - Real-time bidirectional communication
 - 🔐 **Security Layer** - SSL/TLS encryption with certificate-based authentication
 
 ## 📦 Prerequisites
@@ -221,6 +221,8 @@ q, quit             - Exit
    - Multi-threaded client handling
    - Thread pool management (50 threads)
    - Core game logic and session management
+   - Internal HTTP API (port 8083) for backend-to-backend communication
+   - Game state synchronization across services
 
 2. **NIO State Manager** (Port 8081 - Member 2: Sachith)
    - Non-blocking I/O with Selector
@@ -245,8 +247,6 @@ q, quit             - Exit
    - Real-time bidirectional communication
    - Event broadcasting to all clients
    - Chat, notifications, live updates
-   - Internal HTTP API (port 8083) for backend-to-backend communication
-   - Game state synchronization across services
 
 ### Frontend Stack
 
@@ -549,7 +549,7 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 
 ## 👥 Team Members
 
-1. **Sahan** - TCP Server Core with multi-threaded client handling (Member 1)
+1. **Sahan** - TCP Server Core with multi-threaded client handling, internal HTTP API, and game state synchronization (Member 1)
 2. **Sachith** - NIO State Manager with non-blocking I/O and state broadcasting (Member 2)
 3. **Nithakshi** - UDP Event System with real-time position updates and multicast (Member 3)
 4. **Chiran** - Service Discovery/Registry & RMI Statistics Service (Member 4)
@@ -590,7 +590,7 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 - ✅ **Enhanced Profile Page** - Displays complete real-time stats, achievements, and activity
 - ✅ **Connection Status** - Real-time WebSocket connection indicator (Connected/Connecting/Disconnected)
 - ✅ **Service Registry Health** - Self-heartbeat mechanism keeps registry marked as UP
-- ✅ **Internal HTTP API** - WebSocket server exposes HTTP API (port 8083) for backend communication
+- ✅ **Internal HTTP API** - TCP Server exposes HTTP API (port 8083) for backend communication and game state synchronization
 - ✅ **Improved Error Handling** - Better error messages and user feedback throughout the application
 
 ### Version 2.0 - Full-Stack Implementation

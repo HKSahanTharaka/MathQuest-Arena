@@ -4,23 +4,35 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 
 ## ✨ Features
 
+### Core Platform Features
+- 🎮 **Real-Time Multiplayer** - Up to 1000+ concurrent players
+- 🔑 **User Authentication** - Unique username system with session management
+- 🎯 **Game Readiness** - Minimum 3 players required to start challenges
+- 🏆 **Fair Ranking System** - Leaderboard with score + time-to-score ranking
+- 📊 **Live Statistics** - Real-time dashboard with player activity tracking
+- 🔌 **Connection Status** - Real-time WebSocket connection indicator
+- 💾 **Persistent Preferences** - Theme and user settings saved locally
+
 ### Frontend (React + Vite)
-- 🎨 **Modern UI** - Beautiful, responsive design with Tailwind CSS
-- 🌓 **Dark/Light Theme** - Toggle with persistent preference
-- 📊 **Interactive Dashboard** - Real-time stats with charts
-- 🧮 **Problem Interface** - Browse, filter, and submit math solutions
-- 🏆 **Live Leaderboard** - Global rankings with real-time updates
-- 👤 **User Profiles** - Stats, achievements, and activity history
-- 💬 **Live Chat** - Real-time messaging between players
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+- 🎨 **Modern UI** - Beautiful, responsive design with Tailwind CSS and Lucide icons
+- 🌓 **Dark/Light Theme** - Toggle with persistent preference across sessions
+- 📊 **Interactive Dashboard** - Real-time stats with Recharts visualizations and live updates
+- 🧮 **Problem Interface** - Browse, filter, and submit math solutions with instant feedback
+- 🏆 **Live Leaderboard** - Global rankings with real-time updates and player positions
+- 👤 **User Profiles** - Complete stats, achievements, and detailed activity history
+- 💬 **Live Chat** - Real-time messaging with other players (available during lobby phase)
+- 🔒 **Username Uniqueness** - Enforced unique usernames per session (case-insensitive)
+- 📱 **Responsive Design** - Fully responsive layout for desktop, tablet, and mobile devices
+- 🚀 **Vite HMR** - Lightning-fast development with hot module replacement
 
 ### Backend (Java)
-- 🔌 **TCP Game Server** - Multi-threaded client handling with thread pools
-- ⚡ **NIO State Manager** - Non-blocking I/O, scalable to 1000+ connections
-- 📡 **UDP Event System** - Real-time position updates with multicast
-- 🔍 **Service Discovery** - Service registry with health monitoring and DNS-like resolution
-- 📊 **RMI Statistics** - Remote leaderboard and player statistics
+- 🔌 **TCP Game Server** - Multi-threaded client handling with 50-thread pool, core game logic, internal HTTP API, and game state synchronization
+- ⚡ **NIO State Manager** - Non-blocking I/O with Selector, scalable to 1000+ connections
+- 📡 **UDP Event System** - Real-time position updates with multicast messaging capability
+- 🔍 **Service Discovery** - Complete service registry with health monitoring and DNS-like resolution
+- 📊 **RMI Statistics** - Remote leaderboard access and player statistics tracking
 - 🌐 **WebSocket Bridge** - Real-time bidirectional communication
+- 🔐 **Security Layer** - SSL/TLS encryption with certificate-based authentication
 
 ## 📦 Prerequisites
 
@@ -57,7 +69,7 @@ This automatically:
 
 **Then open:** http://localhost:3000
 
-**Login:** `player1` / `password1`
+**Login:** Enter any unique username (minimum 3 players required to start)
 
 ### Option 2: Backend Only (Console Client)
 
@@ -103,6 +115,7 @@ npm run dev
 | **REST API** | http://localhost:8080 | Main API server |
 | **NIO Manager** | localhost:8081 | State broadcasting |
 | **WebSocket** | ws://localhost:8082 | Real-time updates |
+| **WebSocket HTTP API** | http://localhost:8083 | Internal backend API |
 | **Service Discovery** | http://localhost:8084 | Service registry |
 | **UDP Server** | localhost:9000 | Event updates |
 | **UDP Multicast** | localhost:9001 | Group messaging |
@@ -113,13 +126,15 @@ npm run dev
 ### Web Interface (Frontend)
 
 1. **Open Browser:** http://localhost:3000
-2. **Login:** Enter any username to start
-3. **Dashboard:** View your stats, score history, and server status
-4. **Problems:** Browse math problems, submit answers
-5. **Leaderboard:** See global rankings with live updates
-6. **Profile:** View your achievements and activity
-7. **Chat:** Message other solvers in real-time
-8. **Theme:** Toggle dark/light mode in navbar
+2. **Login:** Enter a unique username (duplicate usernames are not allowed)
+3. **Wait for Players:** Minimum 3 players must join before challenges can be started
+4. **Dashboard:** View your stats, score history, and server status (updates in real-time)
+5. **Problems:** Browse math problems, submit answers (enabled when 3+ players join)
+6. **Leaderboard:** See global rankings with live updates
+7. **Profile:** View your complete stats, achievements, and activity history
+8. **Chat:** Message other players in real-time (only available while waiting for players)
+9. **Theme:** Toggle dark/light mode in navbar
+10. **Connection Status:** Monitor WebSocket connection status in the navbar
 
 ### Console Client Commands
 
@@ -134,6 +149,40 @@ chat <message>      - Send chat message
 h, help             - Show commands
 q, quit             - Exit
 ```
+
+## 🎯 Game Rules & Mechanics
+
+### Player Requirements
+- **Minimum Players:** 3 players must join before challenges can be started
+- **Username Uniqueness:** Each username must be unique (case-insensitive matching)
+- **Session Management:** Players can disconnect and reconnect with the same username
+
+### Game Flow
+1. **Lobby Phase:** Players join and wait for minimum player count
+   - Chat is available during this phase
+   - Players can view dashboard and leaderboard
+   - Challenges are disabled until 3+ players join
+   
+2. **Active Game Phase:** Once 3+ players have joined
+   - Challenges become available for submission
+   - Chat is disabled to focus on problem-solving
+   - Real-time leaderboard updates
+   - Score tracking and achievements
+
+### Scoring & Ranking System
+- Points are awarded for correct challenge submissions
+- **Leaderboard Ranking:** Players are ranked by:
+  - **Primary:** Total score (higher is better)
+  - **Tiebreaker:** Time to reach that score (earlier is better)
+  - Players who reach the same score first get better ranking
+- Achievements unlock based on performance (no emojis)
+- Weekly activity is tracked and displayed
+
+### Real-time Features
+- **Live Updates:** Dashboard, leaderboard, and stats update automatically
+- **WebSocket Connection:** Real-time communication with connection status indicator
+- **Player Activity:** See when players join, solve challenges, and score points
+- **Server Stats:** Monitor active players, game readiness, and service health
 
 ## 🏗️ Architecture
 
@@ -153,48 +202,48 @@ q, quit             - Exit
          │                  │
     HTTP │                  │ WebSocket
          ▼                  ▼
-┌─────────────────────────────────────┐
-│  Backend Servers (Java)             │
-│  ┌──────────────────────────────┐   │
-│  │  1. TCP Server (8080)        │   │ Member 1
-│  │  2. NIO Manager (8081)       │   │ Member 2
-│  │  3. UDP Server (9000)        │   │ Member 3
-│  │  4. SSL Auth (8443)          │   │ Member 4
-│  │  5. RMI Statistics (1099)    │   │ Member 5
-│  │  6. WebSocket Bridge (8082)  │   │ New
-│  └──────────────────────────────┘   │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  Backend Servers (Java)                         │
+│  ┌─────────────────────────────────────────┐   │
+│  │  1. TCP Server (8080)     [Member 1: Sahan]       │
+│  │  2. NIO Manager (8081)    [Member 2: Sachith]     │
+│  │  3. UDP Server (9000)     [Member 3: Nithakshi]   │
+│  │  4. Service Discovery/Registry & RMI Statistics   │
+│  │     (8084 & 1099)         [Member 4: Chiran]      │
+│  │  5. WebSocket Bridge (8082)   [Member 5: Thilina] │
+│  └─────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
 ```
 
 ### Backend Components
 
-1. **TCP Game Server** (Member 1)
+1. **TCP Game Server** (Port 8080 - Member 1: Sahan)
    - Multi-threaded client handling
    - Thread pool management (50 threads)
    - Core game logic and session management
+   - Internal HTTP API (port 8083) for backend-to-backend communication
+   - Game state synchronization across services
 
-2. **NIO State Manager** (Member 2)
+2. **NIO State Manager** (Port 8081 - Member 2: Sachith)
    - Non-blocking I/O with Selector
    - Efficient state broadcasting
    - Scalable to 1000+ concurrent connections
 
-3. **UDP Event System** (Member 3)
+3. **UDP Event System** (Port 9000 - Member 3: Nithakshi)
    - Real-time position updates
    - Multicast messaging for groups
    - Low-latency communication
 
-4. **Service Discovery/Registry** (Member 4)
+4. **Service Discovery/Registry & RMI Statistics** (Ports 8084 & 1099 - Member 4: Chiran)
    - Service registration and deregistration
    - Health monitoring with heartbeats
    - DNS-like service name resolution
    - Load information tracking
-
-5. **RMI Statistics Service** (Member 5)
    - Remote leaderboard access
    - Player statistics tracking
    - Achievement system
 
-6. **WebSocket Bridge** (New)
+5. **WebSocket Bridge** (Port 8082 - Member 5: Thilina)
    - Real-time bidirectional communication
    - Event broadcasting to all clients
    - Chat, notifications, live updates
@@ -382,6 +431,9 @@ Remove-Item -Recurse target
 **Real-time updates not working**
 - Check `logs\websocket.log` for errors
 - Ensure port 8082 is not blocked by firewall
+- Verify WebSocket connection status in the navbar (should show "Connected")
+- Check that the internal HTTP API on port 8083 is accessible (backend-to-backend communication)
+- Ensure all backend servers are running and can communicate with each other
 
 ### Login Issues
 
@@ -389,6 +441,17 @@ Remove-Item -Recurse target
 - Ensure all backend servers are running
 - Check `logs\tcp.log` and `logs\ssl.log`
 - Verify keystore exists: `resources\keystore.jks`
+
+**"Username already taken" error**
+- Each username can only be used by one active player at a time
+- If a player disconnects, their username becomes available again
+- Try using a different username or wait for the previous player to disconnect
+- Username comparison is case-insensitive (e.g., "Player1" and "player1" are the same)
+
+**"Game not ready" or challenges disabled**
+- Minimum 3 players must join before challenges can be started
+- Check the game status indicator on the Challenges page
+- Wait for more players to join, or start additional client sessions
 
 ## 📊 Performance Metrics
 
@@ -486,11 +549,11 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 
 ## 👥 Team Members
 
-1. [Name] - TCP Server Core (Member 1)
-2. [Name] - NIO State Manager (Member 2)
-3. [Name] - UDP Event System (Member 3)
-4. [Name] - Security Layer (Member 4)
-5. [Name] - RMI Statistics (Member 5)
+1. **Sahan** - TCP Server Core with multi-threaded client handling, internal HTTP API, and game state synchronization (Member 1)
+2. **Sachith** - NIO State Manager with non-blocking I/O and state broadcasting (Member 2)
+3. **Nithakshi** - UDP Event System with real-time position updates and multicast (Member 3)
+4. **Chiran** - Service Discovery/Registry & RMI Statistics Service (Member 4)
+5. **Thilina** - WebSocket Bridge with real-time communication (Member 5)
 
 ## 📚 Additional Resources
 
@@ -501,6 +564,34 @@ Add math problems in `GameDataManager.java` `getChallengesForPlayer()` method an
 - **WebSocket Protocol:** https://tools.ietf.org/html/rfc6455
 
 ## 🔄 Recent Updates
+
+### Version 2.3 - Team Integration & Documentation (Current)
+- ✅ **Team Member Attribution** - Added team member names to architecture documentation
+  - Sahan: TCP Server Core
+  - Sachith: NIO State Manager
+  - Nithakshi: UDP Event System
+  - Chiran: Service Discovery & Registry
+  - Thilina: RMI Statistics Service
+- ✅ **Enhanced Feature Documentation** - Comprehensive feature descriptions with technical details
+- ✅ **Improved Architecture Overview** - Clearer service responsibilities and capabilities
+
+### Version 2.2 - Ranking & Achievement Improvements
+- ✅ **Fair Ranking System** - Leaderboard now uses score (primary) + time-to-score (tiebreaker)
+  - Players who reach the same score earlier get better ranking
+  - Fixes issue where later players incorrectly ranked higher
+- ✅ **Clean Achievements** - Removed emojis from RMI achievement system for consistency
+- ✅ **JSON Serialization Fix** - Corrected achievement array formatting in REST API
+
+### Version 2.1 - Enhanced Game Features
+- ✅ **Minimum Players Requirement** - Game requires 3+ players before challenges can be started
+- ✅ **Real-time Updates** - Dashboard, leaderboard, and player stats update automatically via WebSocket
+- ✅ **Username Uniqueness** - Enforced unique usernames per session (case-insensitive)
+- ✅ **Chat Restrictions** - Chat only available while waiting for players (blocked after game starts)
+- ✅ **Enhanced Profile Page** - Displays complete real-time stats, achievements, and activity
+- ✅ **Connection Status** - Real-time WebSocket connection indicator (Connected/Connecting/Disconnected)
+- ✅ **Service Registry Health** - Self-heartbeat mechanism keeps registry marked as UP
+- ✅ **Internal HTTP API** - TCP Server exposes HTTP API (port 8083) for backend communication and game state synchronization
+- ✅ **Improved Error Handling** - Better error messages and user feedback throughout the application
 
 ### Version 2.0 - Full-Stack Implementation
 - ✅ Added complete React + Vite frontend
@@ -534,7 +625,13 @@ MIT License - Educational Project
 
 **Then open:** http://localhost:3000
 
-**Login:** Enter any username to start
+**Login:** Enter a unique username (minimum 3 players required to start challenges)
+
+**Note:** 
+- Usernames must be unique (case-insensitive)
+- Minimum 3 players must join before challenges can be started
+- Chat is only available while waiting for players
+- All stats and leaderboards update in real-time
 
 **Enjoy MathQuest Arena!** 🧮
 

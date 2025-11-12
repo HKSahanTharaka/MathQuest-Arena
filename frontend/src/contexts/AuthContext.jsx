@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }) => {
       const userData = {
         id: response.playerId,
         username: response.username,
-        token: response.token
+        token: response.token,
+        isFirstPlayer: response.isFirstPlayer || false
       };
       
       localStorage.setItem('token', response.token);
@@ -76,7 +77,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Notify server that player is logging out
+      await api.logout().catch(console.error);
+    } catch (err) {
+      // Ignore logout errors - still clear local state
+      console.error('Logout error:', err);
+    }
+    
     localStorage.removeItem('token');
     localStorage.removeItem('playerId');
     localStorage.removeItem('user');

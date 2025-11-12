@@ -107,7 +107,7 @@ const Login = () => {
                 autoFocus
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                No password needed - anyone with the link can play!
+                No password needed - anyone with the link can play! Username must be unique.
               </p>
             </div>
 

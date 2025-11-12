@@ -17,11 +17,18 @@ class ApiService {
         headers,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Extract error message from response
+        const errorMessage = data.error || data.message || `HTTP error! status: ${response.status}`;
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        error.data = data;
+        throw error;
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -32,6 +39,12 @@ class ApiService {
     return this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username }),
+    });
+  }
+
+  async logout() {
+    return this.request('/auth/logout', {
+      method: 'POST',
     });
   }
 
@@ -58,11 +71,13 @@ class ApiService {
   }
 
   async getPlayerStats(playerId) {
-    return this.request(`/stats/${playerId}`);
+    // PlayerId is passed via X-Player-Id header in the request method
+    return this.request('/stats');
   }
 
   async getAchievements(playerId) {
-    return this.request(`/achievements/${playerId}`);
+    // PlayerId is passed via X-Player-Id header in the request method
+    return this.request('/achievements');
   }
 
   async sendChatMessage(message) {
@@ -74,6 +89,16 @@ class ApiService {
 
   async getServerStats() {
     return this.request('/server/stats');
+  }
+
+  async getGameStatus() {
+    return this.request('/game/status');
+  }
+
+  async startSession() {
+    return this.request('/session/start', {
+      method: 'POST',
+    });
   }
 
   async getRegisteredServices() {

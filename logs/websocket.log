@@ -1,5 +1,17 @@
 ? WebSocket server started on port 8082
-? New WebSocket connection from: /127.0.0.1:50243
+? HTTP API server started on port 8083
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56433
+? Received: 
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56446
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56486
+? Received: 
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56503
+? New WebSocket connection from: /127.0.0.1:56555
+? Client disconnected
+? Client disconnected
 ? Received: ?
-? New WebSocket connection from: /127.0.0.1:51140
+? Client disconnected
+? New WebSocket connection from: /[0:0:0:0:0:0:0:1]:56754
+? Client disconnected
+? Received: ?
 ? Client disconnected

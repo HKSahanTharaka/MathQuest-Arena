@@ -7,7 +7,7 @@ import { useWebSocketConnection } from '../hooks/useWebSocket';
 const Navbar = ({ onToggleChat }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const connected = useWebSocketConnection();
+  const connectionState = useWebSocketConnection();
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -73,10 +73,16 @@ const Navbar = ({ onToggleChat }) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+            <div className="flex items-center space-x-2" title={connectionState.state === 'connecting' ? 'Connecting to WebSocket server...' : connectionState.connected ? 'WebSocket connected - Real-time updates enabled' : 'WebSocket disconnected - Real-time updates unavailable'}>
+              <div className={`w-2 h-2 rounded-full ${
+                connectionState.connected ? 'bg-green-500' : 
+                connectionState.connecting ? 'bg-yellow-500' : 
+                'bg-red-500'
+              } ${connectionState.connected || connectionState.connecting ? 'animate-pulse' : ''}`}></div>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {connected ? 'Connected' : 'Disconnected'}
+                {connectionState.connected ? 'Connected' : 
+                 connectionState.connecting ? 'Connecting...' : 
+                 'Disconnected'}
               </span>
             </div>
 

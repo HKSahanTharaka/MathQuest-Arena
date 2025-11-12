@@ -6,11 +6,14 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ServiceDiscoveryServer {
     private static final int PORT = 8084;
     private HttpServer server;
     private ServiceRegistry registry;
+    private ScheduledExecutorService selfHeartbeatScheduler;
     
     public ServiceDiscoveryServer() {
         this.registry = ServiceRegistry.getInstance();
@@ -293,6 +296,9 @@ public class ServiceDiscoveryServer {
     }
     
     public void stop() {
+        if (selfHeartbeatScheduler != null) {
+            selfHeartbeatScheduler.shutdown();
+        }
         if (server != null) {
             server.stop(0);
         }
@@ -315,10 +321,26 @@ public class ServiceDiscoveryServer {
                 "registry-1", "Service Registry", "localhost", 8084, "http"
             ));
             
+            // Start self-heartbeat to keep the registry marked as UP
+            server.startSelfHeartbeat();
+            
         } catch (Exception e) {
             System.err.println("Failed to start Service Discovery server: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    private void startSelfHeartbeat() {
+        selfHeartbeatScheduler = Executors.newScheduledThreadPool(1);
+        // Send heartbeat every 10 seconds to keep the registry marked as UP
+        selfHeartbeatScheduler.scheduleAtFixedRate(() -> {
+            try {
+                registry.updateHeartbeat("registry-1", 0);
+            } catch (Exception e) {
+                // Ignore errors for self-heartbeat
+            }
+        }, 5, 10, TimeUnit.SECONDS);
+        System.out.println("💓 Self-heartbeat started for Service Registry");
     }
 }
 

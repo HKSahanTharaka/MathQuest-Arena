@@ -5,7 +5,7 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 ## ✨ Features
 
 ### Core Platform Features
-- 🎮 **Real-Time Multiplayer** - Up to 1000+ concurrent players
+- 🎮 **Real-Time Multiplayer** - Up to 50+ concurrent players
 - 🔑 **User Authentication** - Unique username system with session management
 - 🎯 **Game Readiness** - Minimum 3 players required to start challenges
 - 🏆 **Fair Ranking System** - Leaderboard with score + time-to-score ranking
@@ -27,7 +27,7 @@ A real-time multiplayer mathematical problem-solving platform with modern React 
 
 ### Backend (Java)
 - 🔌 **TCP Game Server** - Multi-threaded client handling with 50-thread pool, core game logic, internal HTTP API, and game state synchronization
-- ⚡ **NIO State Manager** - Non-blocking I/O with Selector, scalable to 1000+ connections
+- ⚡ **NIO State Manager** - Non-blocking I/O with Selector, scalable to 50+ connections
 - 📡 **UDP Event System** - Real-time position updates with multicast messaging capability
 - 🔍 **Service Discovery** - Complete service registry with health monitoring and DNS-like resolution
 - 📊 **RMI Statistics** - Remote leaderboard access and player statistics tracking
@@ -227,7 +227,7 @@ q, quit             - Exit
 2. **NIO State Manager** (Port 8081 - Member 2: Sachith)
    - Non-blocking I/O with Selector
    - Efficient state broadcasting
-   - Scalable to 1000+ concurrent connections
+   - Scalable to 50+ concurrent connections
 
 3. **UDP Event System** (Port 9000 - Member 3: Nithakshi)
    - Real-time position updates
@@ -455,7 +455,7 @@ Remove-Item -Recurse target
 
 ## 📊 Performance Metrics
 
-- **Concurrent connections:** 1000+
+- **Concurrent connections:** 50+
 - **Message latency:** < 50ms
 - **UDP throughput:** 10,000 packets/sec
 - **NIO efficiency:** 1 thread handles 500+ connections
